@@ -1,66 +1,408 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useScout } from '@/context/ScoutContext';
+import { generarId } from '@/lib/storage';
+import type { Bateador, Partido } from '@/lib/types';
+
+// ─── Modal: Nuevo Partido ─────────────────────────────────────────────────────
+function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
+  const { dispatch } = useScout();
+  const [rival, setRival] = useState('');
+  const [desc, setDesc] = useState('');
+  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+
+  const iniciar = () => {
+    if (!rival.trim()) return;
+    const partido: Partido = {
+      id: generarId(),
+      fecha,
+      rival: rival.trim().toUpperCase(),
+      descripcion: desc.trim() || `vs ${rival.trim().toUpperCase()}`,
+      innings: 7,
+      creadoEn: new Date().toISOString(),
+    };
+    dispatch({ type: 'INICIAR_PARTIDO', payload: { partido, lineup: [] } });
+    onClose();
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="overlay" onClick={onClose}>
+      <div className="bottom-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        <h2 className="sheet-title">Nuevo Partido</h2>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="form-group">
+            <label className="label">Equipo rival *</label>
+            <input
+              className="input"
+              placeholder="Ej: AUS"
+              value={rival}
+              onChange={(e) => setRival(e.target.value)}
+              autoFocus
+              maxLength={20}
             />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+          <div className="form-group">
+            <label className="label">Descripción</label>
+            <input
+              className="input"
+              placeholder="Ej: Torneo X — Juego 1"
+              value={desc}
+              onChange={(e) => setDesc(e.target.value)}
+              maxLength={60}
+            />
+          </div>
+          <div className="form-group">
+            <label className="label">Fecha</label>
+            <input
+              className="input"
+              type="date"
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+            />
+          </div>
+          <button className="btn btn-primary btn-lg btn-full" onClick={iniciar}>
+            ▶ Iniciar partido
+          </button>
         </div>
-      </main>
+      </div>
+    </div>
+  );
+}
+
+// ─── Modal: Agregar / Editar Bateador ─────────────────────────────────────────
+interface FormBateador {
+  numero: string; apellido: string; nombre: string; equipo: string;
+}
+const FORM_VACIO: FormBateador = { numero: '', apellido: '', nombre: '', equipo: '' };
+
+function ModalBateador({
+  inicial,
+  titulo,
+  onGuardar,
+  onClose,
+}: {
+  inicial?: FormBateador;
+  titulo: string;
+  onGuardar: (d: FormBateador) => void;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState<FormBateador>(inicial ?? FORM_VACIO);
+  const set = (k: keyof FormBateador) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((p) => ({ ...p, [k]: e.target.value }));
+
+  const guardar = () => {
+    if (!form.apellido.trim() || !form.numero.trim()) return;
+    onGuardar({
+      numero: form.numero.trim(),
+      apellido: form.apellido.trim().toUpperCase(),
+      nombre: form.nombre.trim().toUpperCase(),
+      equipo: form.equipo.trim().toUpperCase(),
+    });
+    onClose();
+  };
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="bottom-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        <h2 className="sheet-title">{titulo}</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10 }}>
+            <div className="form-group">
+              <label className="label"># Camiseta *</label>
+              <input className="input" placeholder="7" value={form.numero} onChange={set('numero')} maxLength={3} inputMode="numeric" />
+            </div>
+            <div className="form-group">
+              <label className="label">Equipo</label>
+              <input className="input" placeholder="AUS" value={form.equipo} onChange={set('equipo')} maxLength={10} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="label">Apellido *</label>
+            <input className="input" placeholder="HORT" value={form.apellido} onChange={set('apellido')} maxLength={40} autoCapitalize="characters" />
+          </div>
+          <div className="form-group">
+            <label className="label">Nombre</label>
+            <input className="input" placeholder="LOCHLAN" value={form.nombre} onChange={set('nombre')} maxLength={40} autoCapitalize="characters" />
+          </div>
+          <button className="btn btn-primary btn-full" onClick={guardar}>Guardar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Modal: Sustitución ───────────────────────────────────────────────────────
+function ModalSustitucion({
+  saliente,
+  inning,
+  onClose,
+}: {
+  saliente: Bateador;
+  inning: number;
+  onClose: () => void;
+}) {
+  const { dispatch } = useScout();
+  const [form, setForm] = useState<FormBateador>(FORM_VACIO);
+  const set = (k: keyof FormBateador) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm((p) => ({ ...p, [k]: e.target.value }));
+
+  const confirmar = () => {
+    if (!form.apellido.trim() || !form.numero.trim()) return;
+    dispatch({
+      type: 'SUSTITUIR_BATEADOR',
+      payload: {
+        salienteId: saliente.id,
+        entrante: {
+          numero: form.numero.trim(),
+          apellido: form.apellido.trim().toUpperCase(),
+          nombre: form.nombre.trim().toUpperCase(),
+          equipo: form.equipo.trim().toUpperCase() || saliente.equipo,
+          activo: true,
+        },
+        inning,
+      },
+    });
+    onClose();
+  };
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="bottom-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        <h2 className="sheet-title">Sustitución</h2>
+        <p className="sheet-subtitle">
+          Sale: #{saliente.numero} {saliente.apellido}
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 4 }}>
+          <p className="text-xs text-secondary" style={{ textAlign: 'center' }}>Ingresa los datos del jugador entrante</p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10 }}>
+            <div className="form-group">
+              <label className="label"># Camiseta *</label>
+              <input className="input" placeholder="99" value={form.numero} onChange={set('numero')} maxLength={3} inputMode="numeric" />
+            </div>
+            <div className="form-group">
+              <label className="label">Equipo</label>
+              <input className="input" placeholder={saliente.equipo} value={form.equipo} onChange={set('equipo')} maxLength={10} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="label">Apellido *</label>
+            <input className="input" placeholder="APELLIDO" value={form.apellido} onChange={set('apellido')} maxLength={40} autoCapitalize="characters" />
+          </div>
+          <div className="form-group">
+            <label className="label">Nombre</label>
+            <input className="input" placeholder="NOMBRE" value={form.nombre} onChange={set('nombre')} maxLength={40} autoCapitalize="characters" />
+          </div>
+          <button className="btn btn-primary btn-full" onClick={confirmar}>Confirmar sustitución</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Ícono crosshair ──────────────────────────────────────────────────────────
+const CrosshairIcon = ({ color = 'currentColor' }: { color?: string }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8}>
+    <circle cx="12" cy="12" r="9" />
+    <line x1="12" y1="3" x2="12" y2="7" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+    <line x1="3" y1="12" x2="7" y2="12" />
+    <line x1="17" y1="12" x2="21" y2="12" />
+    <circle cx="12" cy="12" r="2" fill={color} stroke="none" />
+  </svg>
+);
+
+// ─── Pantalla principal: LINE-UP ──────────────────────────────────────────────
+export default function LineupPage() {
+  const { estado, dispatch, bateadorActual, bateadoresActivos } = useScout();
+  const router = useRouter();
+
+  const [showNuevoPartido, setShowNuevoPartido] = useState(false);
+  const [showAgregarBateador, setShowAgregarBateador] = useState(false);
+  const [editando, setEditando] = useState<Bateador | null>(null);
+  const [sustituyendo, setSustituyendo] = useState<Bateador | null>(null);
+
+  const agregarBateador = (d: FormBateador) => {
+    const orden = estado.lineup.length + 1;
+    dispatch({
+      type: 'AGREGAR_BATEADOR',
+      payload: { ...d, orden, activo: true },
+    });
+  };
+
+  const editarBateador = (b: Bateador, d: FormBateador) => {
+    dispatch({ type: 'EDITAR_BATEADOR', payload: { id: b.id, datos: d } });
+  };
+
+  const setBateadorActual = (idx: number) => {
+    dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: idx });
+    router.push('/tracking');
+  };
+
+  // Armar lista mostrando sustituciones
+  const filas: Array<{ bateador: Bateador; idxActivo?: number; esActual: boolean }> = [];
+  const activos = estado.lineup.filter((b) => b.activo);
+  for (const b of estado.lineup) {
+    const idxActivo = activos.indexOf(b);
+    filas.push({ bateador: b, idxActivo: idxActivo >= 0 ? idxActivo : undefined, esActual: bateadorActual?.id === b.id });
+  }
+
+  return (
+    <div style={{ paddingBottom: 80 }}>
+      {/* ── Sin partido ── */}
+      {!estado.partido && (
+        <div className="empty-state">
+          <div className="empty-state__icon">⚾</div>
+          <div className="empty-state__title">Sin partido activo</div>
+          <p className="empty-state__text">Iniciá un nuevo partido para comenzar a cargar el line-up y hacer el tracking.</p>
+          <button className="btn btn-primary btn-lg" onClick={() => setShowNuevoPartido(true)}>
+            ▶ Nuevo Partido
+          </button>
+        </div>
+      )}
+
+      {/* ── Con partido ── */}
+      {estado.partido && (
+        <>
+          {/* Info del partido */}
+          <div style={{ padding: '12px 16px 4px' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ fontSize: '1rem', fontWeight: 800 }}>vs {estado.partido.rival}</span>
+              <span className="badge badge-accent">Inning {estado.inningActual}</span>
+            </div>
+            <p className="text-xs text-secondary" style={{ marginTop: 2 }}>{estado.partido.descripcion}</p>
+          </div>
+
+          {/* Cabecera de tabla */}
+          <div style={{
+            display: 'flex', alignItems: 'center',
+            padding: '8px 16px',
+            borderBottom: '1px solid var(--border)',
+          }}>
+            <span className="text-xs text-secondary" style={{ width: 24 }}>ORD</span>
+            <span className="text-xs text-secondary" style={{ width: 44, textAlign: 'center' }}>NUM</span>
+            <span className="text-xs text-secondary" style={{ flex: 1, paddingLeft: 8 }}>APELLIDO Y NOMBRE</span>
+            <span className="text-xs text-secondary" style={{ width: 36, textAlign: 'right' }}>TEAM</span>
+            <span className="text-xs text-secondary" style={{ width: 40, textAlign: 'center' }}>TRACK</span>
+          </div>
+
+          {/* Filas del lineup */}
+          {filas.length === 0 && (
+            <div className="empty-state" style={{ padding: '40px 24px' }}>
+              <p className="text-secondary text-sm">El line-up está vacío</p>
+            </div>
+          )}
+
+          {filas.map(({ bateador: b, idxActivo, esActual }) => {
+            const sustituido = estado.lineup.find((x) => x.id === b.reemplazadoPorId);
+            return (
+              <div key={b.id}>
+                <div
+                  className={`lineup-row${esActual ? ' current' : ''}${!b.activo ? ' inactivo' : ''}`}
+                  onClick={() => {
+                    if (!b.activo) return;
+                    if (idxActivo !== undefined) setEditando(b);
+                  }}
+                >
+                  <span className="lineup-orden">{b.orden}.</span>
+                  <div className="lineup-numero">{b.numero}</div>
+                  <div className="lineup-nombre">
+                    {b.apellido}{b.nombre ? `, ${b.nombre}` : ''}
+                  </div>
+                  <span className="lineup-equipo">{b.equipo}</span>
+
+                  {/* Track button — ir al tracking de este bateador */}
+                  <button
+                    className="lineup-track"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!b.activo || idxActivo === undefined) return;
+                      setBateadorActual(idxActivo);
+                    }}
+                    aria-label={`Trackear ${b.apellido}`}
+                    style={{ background: 'none', border: 'none', cursor: b.activo ? 'pointer' : 'default' }}
+                  >
+                    <CrosshairIcon color={esActual ? 'var(--accent)' : b.activo ? 'var(--text-muted)' : 'var(--border)'} />
+                  </button>
+                </div>
+
+                {/* Nota de sustitución */}
+                {!b.activo && sustituido && (
+                  <div className="lineup-sustitucion">
+                    ↳ Reemplazado por #{sustituido.numero} {sustituido.apellido} (Inning {b.reemplazadoAInning})
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Acciones */}
+          <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <button className="btn btn-ghost btn-full" onClick={() => setShowAgregarBateador(true)}>
+              + Agregar bateador
+            </button>
+            {bateadorActual && (
+              <button className="btn btn-ghost btn-full" style={{ color: 'var(--warning)', borderColor: 'var(--warning)' }} onClick={() => setSustituyendo(bateadorActual)}>
+                ⇄ Sustitución del bateador actual
+              </button>
+            )}
+            <button className="btn btn-danger btn-full" onClick={() => {
+              if (confirm('¿Iniciar un partido nuevo? Se perderán los datos actuales.')) {
+                dispatch({ type: 'NUEVO_PARTIDO' });
+              }
+            }}>
+              🗑 Nuevo partido
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ── Modales ── */}
+      {showNuevoPartido && <ModalNuevoPartido onClose={() => setShowNuevoPartido(false)} />}
+      {showAgregarBateador && (
+        <ModalBateador
+          titulo="Agregar bateador"
+          onGuardar={agregarBateador}
+          onClose={() => setShowAgregarBateador(false)}
+        />
+      )}
+      {editando && (
+        <ModalBateador
+          titulo="Editar bateador"
+          inicial={{ numero: editando.numero, apellido: editando.apellido, nombre: editando.nombre, equipo: editando.equipo }}
+          onGuardar={(d) => editarBateador(editando, d)}
+          onClose={() => setEditando(null)}
+        />
+      )}
+      {sustituyendo && (
+        <ModalSustitucion
+          saliente={sustituyendo}
+          inning={estado.inningActual}
+          onClose={() => setSustituyendo(null)}
+        />
+      )}
+
+      {/* Botón flotante nuevo partido (sin partido activo) */}
+      {!estado.partido && (
+        <button
+          style={{
+            position: 'fixed', bottom: 80, right: 20,
+            background: 'var(--accent)', color: '#000',
+            border: 'none', borderRadius: 28, padding: '14px 20px',
+            fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
+            boxShadow: 'var(--glow-accent)',
+            zIndex: 50,
+          }}
+          onClick={() => setShowNuevoPartido(true)}
+        >
+          + Nuevo Partido
+        </button>
+      )}
     </div>
   );
 }

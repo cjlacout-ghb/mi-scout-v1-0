@@ -1,0 +1,260 @@
+'use client';
+
+import { useState } from 'react';
+import { useScout } from '@/context/ScoutContext';
+import ZonaStrikeComponent from '@/components/ZonaStrike';
+import ModalPitch from '@/components/ModalPitch';
+import type { ZonaStrike, TurnoAlBate } from '@/lib/types';
+
+export default function TrackingPage() {
+  const { estado, dispatch, bateadorActual, bateadoresActivos } = useScout();
+  const [zonaSeleccionada, setZonaSeleccionada] = useState<ZonaStrike | null>(null);
+
+  // ─── Sin partido activo ────────────────────────────────────────────────────
+  if (!estado.partido) {
+    return (
+      <div className="empty-state">
+        <div className="empty-state__icon">🎯</div>
+        <div className="empty-state__title">Sin partido activo</div>
+        <p className="empty-state__text">Iniciá un partido desde el Line-Up para comenzar el tracking.</p>
+      </div>
+    );
+  }
+
+  if (bateadoresActivos.length === 0) {
+    return (
+      <div className="empty-state">
+        <div className="empty-state__icon">👥</div>
+        <div className="empty-state__title">Line-up vacío</div>
+        <p className="empty-state__text">Cargá los bateadores en la pantalla Line-Up.</p>
+      </div>
+    );
+  }
+
+  // ─── Turnos del bateador actual en este partido ────────────────────────────
+  const turnosBateador: TurnoAlBate[] = bateadorActual
+    ? estado.turnosAlBate.filter((t) => t.bateadorId === bateadorActual.id)
+    : [];
+
+  // Marcadores para mostrar en la zona (solo el último turno)
+  const marcadores = turnosBateador.slice(-1).flatMap((t) => {
+    const tipo =
+      t.resultado === 'HIT'   ? 'contact' :
+      t.resultado === 'OUT'   ? 'contact' :
+      t.resultado === 'BB/HP' ? 'ball'    : 'strike';
+    return [{ zona: t.zona, tipo }];
+  });
+
+  const handleZonaClick = (zona: ZonaStrike) => {
+    setZonaSeleccionada(zona);
+  };
+
+  const handleConfirmarPitch = (datos: {
+    zona: ZonaStrike;
+    tipoPitch: import('@/lib/types').TipoPitch;
+    resultado: import('@/lib/types').ResultadoAtBat;
+    detalleOut?: import('@/lib/types').DetalleOut;
+    detalleHit?: import('@/lib/types').DetalleHit;
+  }) => {
+    if (!bateadorActual) return;
+
+    dispatch({
+      type: 'REGISTRAR_TURNO',
+      payload: {
+        bateadorId: bateadorActual.id,
+        inning: estado.inningActual,
+        zona: datos.zona,
+        tipoPitch: datos.tipoPitch,
+        resultado: datos.resultado,
+        detalleOut: datos.detalleOut,
+        detalleHit: datos.detalleHit,
+      },
+    });
+
+    setZonaSeleccionada(null);
+
+    // Avanzar automáticamente al siguiente bateador
+    dispatch({ type: 'AVANZAR_BATEADOR' });
+  };
+
+  const cambiarInning = (delta: number) => {
+    const nuevo = Math.max(1, estado.inningActual + delta);
+    dispatch({ type: 'SET_INNING', payload: nuevo });
+  };
+
+  // Contar stats rápidas del bateador actual
+  const ab = turnosBateador.length;
+  const hits = turnosBateador.filter((t) => t.resultado === 'HIT').length;
+  const ks  = turnosBateador.filter((t) => t.resultado === 'KS' || t.resultado === 'KL').length;
+  const bb  = turnosBateador.filter((t) => t.resultado === 'BB/HP').length;
+
+  const ultimoTurno = turnosBateador[turnosBateador.length - 1];
+
+  return (
+    <div style={{ paddingBottom: 16 }}>
+      {/* ── Bateador actual ── */}
+      <div style={{
+        padding: '12px 16px',
+        background: 'var(--bg-surface)',
+        borderBottom: '1px solid var(--border)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{
+            width: 48, height: 48,
+            background: 'var(--bg-elevated)',
+            border: '2px solid var(--accent)',
+            borderRadius: 8,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.1rem', fontWeight: 900,
+            color: 'var(--accent)',
+            flexShrink: 0,
+          }}>
+            {bateadorActual?.numero ?? '-'}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 800, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {bateadorActual?.apellido ?? '—'}{bateadorActual?.nombre ? `, ${bateadorActual.nombre}` : ''}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 3, alignItems: 'center' }}>
+              <span className="badge badge-accent">{bateadorActual?.equipo}</span>
+              <span className="text-xs text-secondary">
+                Turno #{estado.bateadorActualIndex + 1} en orden
+              </span>
+            </div>
+          </div>
+
+          {/* Inning control */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <button onClick={() => cambiarInning(1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1rem' }}>▲</button>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Inn</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text-primary)' }}>{estado.inningActual}</div>
+            <button onClick={() => cambiarInning(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1rem' }}>▼</button>
+          </div>
+        </div>
+
+        {/* Stats rápidas */}
+        {ab > 0 && (
+          <div style={{ display: 'flex', gap: 12, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>AB</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>{ab}</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '0.62rem', color: 'var(--success)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>H</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--success)' }}>{hits}</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '0.62rem', color: 'var(--danger)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>K</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--danger)' }}>{ks}</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '0.62rem', color: 'var(--info)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>BB</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--info)' }}>{bb}</div>
+            </div>
+            {ultimoTurno && (
+              <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Último</div>
+                <div style={{
+                  fontSize: '0.95rem', fontWeight: 800,
+                  color: ultimoTurno.resultado === 'HIT' ? 'var(--success)' : ultimoTurno.resultado === 'OUT' || ultimoTurno.resultado.startsWith('K') ? 'var(--danger)' : 'var(--info)',
+                }}>
+                  {ultimoTurno.resultado}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Zona de strike ── */}
+      <div style={{ padding: '8px 0 4px' }}>
+        <p style={{
+          textAlign: 'center',
+          fontSize: '0.72rem',
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          color: 'var(--text-secondary)',
+          textTransform: 'uppercase',
+          marginBottom: 4,
+        }}>
+          Tocá la zona del lanzamiento
+        </p>
+        <ZonaStrikeComponent onZonaClick={handleZonaClick} marcadores={marcadores} />
+      </div>
+
+      {/* ── Mini lineup horizontal ── */}
+      <div style={{ padding: '8px 16px' }}>
+        <p className="text-xs text-secondary" style={{ marginBottom: 6 }}>Orden al bate</p>
+        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
+          {bateadoresActivos.map((b, i) => (
+            <button
+              key={b.id}
+              onClick={() => dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: i })}
+              style={{
+                flexShrink: 0,
+                padding: '6px 10px',
+                borderRadius: 8,
+                background: i === estado.bateadorActualIndex ? 'var(--accent-dim)' : 'var(--bg-elevated)',
+                border: `1px solid ${i === estado.bateadorActualIndex ? 'var(--accent)' : 'var(--border)'}`,
+                color: i === estado.bateadorActualIndex ? 'var(--accent)' : 'var(--text-secondary)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <span style={{ fontSize: '0.6rem' }}>{b.orden}.</span>
+              <span>{b.numero}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Historial de turnos del bateador actual ── */}
+      {turnosBateador.length > 0 && (
+        <div style={{ padding: '8px 16px' }}>
+          <p className="text-xs text-secondary" style={{ marginBottom: 6 }}>Historial</p>
+          {[...turnosBateador].reverse().map((t, i) => (
+            <div
+              key={t.id}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '8px 10px',
+                background: 'var(--bg-elevated)',
+                borderRadius: 8,
+                marginBottom: 6,
+                borderLeft: `3px solid ${t.resultado === 'HIT' ? 'var(--success)' : t.resultado === 'OUT' || t.resultado.startsWith('K') ? 'var(--danger)' : 'var(--info)'}`,
+              }}
+            >
+              <span className="text-xs text-secondary">Inn {t.inning}</span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', flex: 1 }}>
+                Zona {t.zona} · {t.tipoPitch}
+              </span>
+              <span style={{
+                fontWeight: 800,
+                fontSize: '0.88rem',
+                color: t.resultado === 'HIT' ? 'var(--success)' : t.resultado === 'OUT' || t.resultado.startsWith('K') ? 'var(--danger)' : 'var(--info)',
+              }}>
+                {t.resultado}
+                {t.detalleHit && ` (${t.detalleHit.tipo})`}
+                {t.detalleOut && ` (${t.detalleOut.tipo})`}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Modal de pitch ── */}
+      {zonaSeleccionada !== null && (
+        <ModalPitch
+          zona={zonaSeleccionada}
+          onConfirmar={handleConfirmarPitch}
+          onCancelar={() => setZonaSeleccionada(null)}
+        />
+      )}
+    </div>
+  );
+}
