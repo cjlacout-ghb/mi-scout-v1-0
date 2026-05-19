@@ -46,7 +46,7 @@ function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
             />
           </div>
           <div className="form-group">
-            <label className="label">Descripción</label>
+            <label className="label">Evento</label>
             <input
               className="input"
               placeholder="Ej: Torneo X — Juego 1"
@@ -57,12 +57,30 @@ function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
           </div>
           <div className="form-group">
             <label className="label">Fecha</label>
-            <input
-              className="input"
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-            />
+            <div style={{ position: 'relative' }}>
+              <div className="input" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: fecha ? 'inherit' : 'var(--text-muted)' }}>
+                <span>
+                  {fecha 
+                    ? (() => {
+                        const [y, m, d] = fecha.split('-');
+                        return `${d}/${m}/${y}`;
+                      })() 
+                    : 'DD/MM/AAAA'}
+                </span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </div>
+              <input
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+              />
+            </div>
           </div>
           <button className="btn btn-primary btn-lg btn-full" onClick={iniciar}>
             ▶ Iniciar partido
@@ -254,15 +272,48 @@ export default function LineupPage() {
 
   return (
     <div style={{ paddingBottom: 80 }}>
-      {/* ── Sin partido ── */}
+      {/* ── Landing Page (Sin partido) ── */}
       {!estado.partido && (
-        <div className="empty-state">
-          <div className="empty-state__icon">⚾</div>
-          <div className="empty-state__title">Sin partido activo</div>
-          <p className="empty-state__text">Iniciá un nuevo partido para comenzar a cargar el line-up y hacer el tracking.</p>
-          <button className="btn btn-primary btn-lg" onClick={() => setShowNuevoPartido(true)}>
-            ▶ Nuevo Partido
-          </button>
+        <div style={{ 
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+          minHeight: 'calc(100vh - 160px)', padding: '32px 24px', textAlign: 'center',
+          animation: 'fadeIn 0.5s ease'
+        }}>
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ 
+              width: 80, height: 80, background: 'var(--bg-elevated)', borderRadius: '50%', 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              margin: '0 auto 20px', border: '1px solid var(--border)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+            }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="#CCFF00" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M 6.5 4.5 A 9 9 0 0 0 6.5 19.5" />
+                <path d="M 17.5 4.5 A 9 9 0 0 1 17.5 19.5" />
+                <path d="M 7.5 7 L 5 8" />
+                <path d="M 8.5 10 L 5.5 11" />
+                <path d="M 8.5 14 L 5.5 13" />
+                <path d="M 7.5 17 L 5 16" />
+                <path d="M 16.5 7 L 19 8" />
+                <path d="M 15.5 10 L 18.5 11" />
+                <path d="M 15.5 14 L 18.5 13" />
+                <path d="M 16.5 17 L 19 16" />
+              </svg>
+            </div>
+            <h1 style={{ fontSize: '2.2rem', fontWeight: 900, lineHeight: 1.1, marginBottom: 16, letterSpacing: '-0.03em' }}>
+              Mi<span style={{ color: 'var(--accent)' }}>Scout</span>
+            </h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.5, maxWidth: 300, margin: '0 auto' }}>
+              Tracking de pitcheos y zona de strike.
+            </p>
+          </div>
+          
+          <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <button className="btn btn-primary btn-lg btn-full" style={{ boxShadow: 'var(--glow-accent)', padding: '18px 24px', fontSize: '1.05rem' }} onClick={() => setShowNuevoPartido(true)}>
+              ▶ Comenzar Scouting
+            </button>
+
+          </div>
         </div>
       )}
 
@@ -387,22 +438,7 @@ export default function LineupPage() {
         />
       )}
 
-      {/* Botón flotante nuevo partido (sin partido activo) */}
-      {!estado.partido && (
-        <button
-          style={{
-            position: 'fixed', bottom: 80, right: 20,
-            background: 'var(--accent)', color: '#000',
-            border: 'none', borderRadius: 28, padding: '14px 20px',
-            fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer',
-            boxShadow: 'var(--glow-accent)',
-            zIndex: 50,
-          }}
-          onClick={() => setShowNuevoPartido(true)}
-        >
-          + Nuevo Partido
-        </button>
-      )}
+
     </div>
   );
 }

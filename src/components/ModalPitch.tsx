@@ -56,7 +56,7 @@ const TIPOS_PITCH: { value: TipoPitch; label: string; emoji: string }[] = [
   { value: 'riser',  label: 'Riser',  emoji: '⬆️' },
   { value: 'curva',  label: 'Curva',  emoji: '↩️' },
   { value: 'cambio', label: 'Cambio', emoji: '🔄' },
-  { value: 'otro',   label: 'Otro',   emoji: '⚾' },
+  { value: 'otro',   label: 'Otro',   emoji: '🥎' },
 ];
 
 const TIPOS_RESULTADO: { value: ResultadoAtBat; label: string; color: string; desc: string }[] = [

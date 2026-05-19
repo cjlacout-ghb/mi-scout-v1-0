@@ -9,6 +9,7 @@ import type { ZonaStrike, TurnoAlBate } from '@/lib/types';
 export default function TrackingPage() {
   const { estado, dispatch, bateadorActual, bateadoresActivos } = useScout();
   const [zonaSeleccionada, setZonaSeleccionada] = useState<ZonaStrike | null>(null);
+  const [turnoEditando, setTurnoEditando] = useState<TurnoAlBate | null>(null);
 
   // ─── Sin partido activo ────────────────────────────────────────────────────
   if (!estado.partido) {
@@ -38,15 +39,17 @@ export default function TrackingPage() {
 
   // Marcadores para mostrar en la zona (solo el último turno)
   const marcadores = turnosBateador.slice(-1).flatMap((t) => {
-    const tipo =
+    const tipo = (
       t.resultado === 'HIT'   ? 'contact' :
       t.resultado === 'OUT'   ? 'contact' :
-      t.resultado === 'BB/HP' ? 'ball'    : 'strike';
+      t.resultado === 'BB/HP' ? 'ball'    : 'strike'
+    ) as 'strike' | 'ball' | 'contact';
     return [{ zona: t.zona, tipo }];
   });
 
   const handleZonaClick = (zona: ZonaStrike) => {
     setZonaSeleccionada(zona);
+    setTurnoEditando(null); // Nuevo pitch
   };
 
   const handleConfirmarPitch = (datos: {
@@ -58,23 +61,39 @@ export default function TrackingPage() {
   }) => {
     if (!bateadorActual) return;
 
-    dispatch({
-      type: 'REGISTRAR_TURNO',
-      payload: {
-        bateadorId: bateadorActual.id,
-        inning: estado.inningActual,
-        zona: datos.zona,
-        tipoPitch: datos.tipoPitch,
-        resultado: datos.resultado,
-        detalleOut: datos.detalleOut,
-        detalleHit: datos.detalleHit,
-      },
-    });
+    if (turnoEditando) {
+      dispatch({
+        type: 'EDITAR_TURNO_AL_BATE',
+        payload: {
+          id: turnoEditando.id,
+          datos: {
+            zona: datos.zona,
+            tipoPitch: datos.tipoPitch,
+            resultado: datos.resultado,
+            detalleOut: datos.detalleOut,
+            detalleHit: datos.detalleHit,
+          },
+        },
+      });
+      setTurnoEditando(null);
+    } else {
+      dispatch({
+        type: 'REGISTRAR_TURNO',
+        payload: {
+          bateadorId: bateadorActual.id,
+          inning: estado.inningActual,
+          zona: datos.zona,
+          tipoPitch: datos.tipoPitch,
+          resultado: datos.resultado,
+          detalleOut: datos.detalleOut,
+          detalleHit: datos.detalleHit,
+        },
+      });
+      // Avanzar automáticamente al siguiente bateador solo si es nuevo
+      dispatch({ type: 'AVANZAR_BATEADOR' });
+    }
 
     setZonaSeleccionada(null);
-
-    // Avanzar automáticamente al siguiente bateador
-    dispatch({ type: 'AVANZAR_BATEADOR' });
   };
 
   const cambiarInning = (delta: number) => {
@@ -237,11 +256,35 @@ export default function TrackingPage() {
                 fontWeight: 800,
                 fontSize: '0.88rem',
                 color: t.resultado === 'HIT' ? 'var(--success)' : t.resultado === 'OUT' || t.resultado.startsWith('K') ? 'var(--danger)' : 'var(--info)',
+                marginRight: 4
               }}>
                 {t.resultado}
                 {t.detalleHit && ` (${t.detalleHit.tipo})`}
                 {t.detalleOut && ` (${t.detalleOut.tipo})`}
               </span>
+              <div style={{ display: 'flex', gap: 8, opacity: 0.7 }}>
+                <button
+                  onClick={() => {
+                    setTurnoEditando(t);
+                    setZonaSeleccionada(t.zona);
+                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-secondary)' }}
+                  title="Editar"
+                >
+                  ✎
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm('¿Eliminar este lanzamiento?')) {
+                      dispatch({ type: 'ELIMINAR_TURNO_AL_BATE', payload: t.id });
+                    }
+                  }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--danger)' }}
+                  title="Eliminar"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           ))}
         </div>

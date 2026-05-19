@@ -1,0 +1,19 @@
+﻿.\chrome.exe : 
+En línea: 1 Carácter: 50
++ ... plication'; .\chrome.exe --headless=new --remote-debugging-port=9222  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+DevTools listening on ws://127.0.0.1:9222/devtools/browser/77f6f2fd-86e4-46ad-b3b9-04bc3921b933
+[10160:10800:0519/174708.457:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error 
+message: PHONE_REGISTRATION_ERROR
+[10160:10800:0519/174708.462:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error 
+message: PHONE_REGISTRATION_ERROR
+[10160:10800:0519/174708.491:ERROR:google_apis\gcm\engine\registration_request.cc:291] Registration response error 
+message: PHONE_REGISTRATION_ERROR
+[10160:10800:0519/174708.501:ERROR:google_apis\gcm\engine\mcs_client.cc:702]   Error code: 401  Error message: 
+Authentication Failed: wrong_secret
+[10160:10800:0519/174708.501:ERROR:google_apis\gcm\engine\mcs_client.cc:704] Failed to log in to GCM, resetting 
+connection.
+Created TensorFlow Lite XNNPACK delegate for CPU.

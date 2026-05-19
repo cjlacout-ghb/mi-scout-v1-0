@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useScout } from '@/context/ScoutContext';
 
 // ─── Íconos SVG inline ────────────────────────────────────────────────────────
@@ -60,9 +61,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div className="app-shell">
       {/* Header */}
       <header className="app-header">
-        <div className="app-header__logo">
-          Mi<span>Scout</span>
-        </div>
+        <Link 
+          href="/"
+          className="app-header__logo" 
+          style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', cursor: 'pointer', textDecoration: 'none' }}
+        >
+          <div>Mi<span>Scout</span></div>
+          <span style={{ fontSize: '0.7rem', color: '#ffffff', fontWeight: 400, letterSpacing: '0.5px' }}>v1.0</span>
+        </Link>
         {partidoInfo && (
           <div className="app-header__info">
             <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-primary)' }}>

@@ -16,6 +16,8 @@ type Accion =
   | { type: 'AVANZAR_BATEADOR' }
   | { type: 'SET_BATEADOR_ACTUAL'; payload: number }
   | { type: 'SET_INNING'; payload: number }
+  | { type: 'EDITAR_TURNO_AL_BATE'; payload: { id: string; datos: Partial<Omit<TurnoAlBate, 'id' | 'timestamp'>> } }
+  | { type: 'ELIMINAR_TURNO_AL_BATE'; payload: string }
   | { type: 'CARGAR_ESTADO'; payload: EstadoPartido };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
@@ -83,6 +85,18 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
         timestamp: new Date().toISOString(),
       };
       return { ...estado, turnosAlBate: [...estado.turnosAlBate, turno] };
+    }
+
+    case 'EDITAR_TURNO_AL_BATE': {
+      const turnosAlBate = estado.turnosAlBate.map((t) =>
+        t.id === accion.payload.id ? { ...t, ...accion.payload.datos } : t
+      );
+      return { ...estado, turnosAlBate };
+    }
+
+    case 'ELIMINAR_TURNO_AL_BATE': {
+      const turnosAlBate = estado.turnosAlBate.filter((t) => t.id !== accion.payload);
+      return { ...estado, turnosAlBate };
     }
 
     case 'AVANZAR_BATEADOR': {
