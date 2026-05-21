@@ -4,12 +4,15 @@ import { useState } from 'react';
 import { useScout } from '@/context/ScoutContext';
 import ZonaStrikeComponent from '@/components/ZonaStrike';
 import ModalPitch from '@/components/ModalPitch';
+import ModalConfirm from '@/components/ModalConfirm';
 import type { ZonaStrike, TurnoAlBate } from '@/lib/types';
 
 export default function TrackingPage() {
   const { estado, dispatch, bateadorActual, bateadoresActivos } = useScout();
   const [zonaSeleccionada, setZonaSeleccionada] = useState<ZonaStrike | null>(null);
   const [turnoEditando, setTurnoEditando] = useState<TurnoAlBate | null>(null);
+  const [turnoAEliminar, setTurnoAEliminar] = useState<string | null>(null);
+  const [esperandoConfirmacion, setEsperandoConfirmacion] = useState(false);
 
   // ─── Sin partido activo ────────────────────────────────────────────────────
   if (!estado.partido) {
@@ -48,8 +51,8 @@ export default function TrackingPage() {
   });
 
   const handleZonaClick = (zona: ZonaStrike) => {
+    if (esperandoConfirmacion) return;
     setZonaSeleccionada(zona);
-    setTurnoEditando(null); // Nuevo pitch
   };
 
   const handleConfirmarPitch = (datos: {
@@ -76,6 +79,7 @@ export default function TrackingPage() {
         },
       });
       setTurnoEditando(null);
+      setEsperandoConfirmacion(true);
     } else {
       dispatch({
         type: 'REGISTRAR_TURNO',
@@ -89,14 +93,15 @@ export default function TrackingPage() {
           detalleHit: datos.detalleHit,
         },
       });
-      // Avanzar automáticamente al siguiente bateador solo si es nuevo
-      dispatch({ type: 'AVANZAR_BATEADOR' });
+      setEsperandoConfirmacion(true);
     }
 
     setZonaSeleccionada(null);
   };
 
   const cambiarInning = (delta: number) => {
+    setEsperandoConfirmacion(false);
+    setTurnoEditando(null);
     const nuevo = Math.max(1, estado.inningActual + delta);
     dispatch({ type: 'SET_INNING', payload: nuevo });
   };
@@ -136,9 +141,6 @@ export default function TrackingPage() {
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 3, alignItems: 'center' }}>
               <span className="badge badge-accent">{bateadorActual?.equipo}</span>
-              <span className="text-xs text-secondary">
-                Turno #{estado.bateadorActualIndex + 1} en orden
-              </span>
             </div>
           </div>
 
@@ -196,9 +198,34 @@ export default function TrackingPage() {
           textTransform: 'uppercase',
           marginBottom: 4,
         }}>
-          Tocá la zona del lanzamiento
+          {esperandoConfirmacion ? 'Confirmar resultado' : turnoEditando ? 'Reubicá el lanzamiento' : 'Tocá la zona del lanzamiento'}
         </p>
         <ZonaStrikeComponent onZonaClick={handleZonaClick} marcadores={marcadores} />
+        {esperandoConfirmacion && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                if (!ultimoTurno) return;
+                setEsperandoConfirmacion(false);
+                setTurnoEditando(ultimoTurno);
+              }}
+              style={{ width: 120 }}
+            >
+              Editar
+            </button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => {
+                setEsperandoConfirmacion(false);
+                dispatch({ type: 'AVANZAR_BATEADOR' });
+              }}
+              style={{ width: 120 }}
+            >
+              Confirmar
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ── Mini lineup horizontal ── */}
@@ -208,7 +235,11 @@ export default function TrackingPage() {
           {bateadoresActivos.map((b, i) => (
             <button
               key={b.id}
-              onClick={() => dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: i })}
+              onClick={() => {
+                setEsperandoConfirmacion(false);
+                setTurnoEditando(null);
+                dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: i });
+              }}
               style={{
                 flexShrink: 0,
                 padding: '6px 10px',
@@ -266,7 +297,6 @@ export default function TrackingPage() {
                 <button
                   onClick={() => {
                     setTurnoEditando(t);
-                    setZonaSeleccionada(t.zona);
                   }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-secondary)' }}
                   title="Editar"
@@ -274,11 +304,7 @@ export default function TrackingPage() {
                   ✎
                 </button>
                 <button
-                  onClick={() => {
-                    if (confirm('¿Eliminar este lanzamiento?')) {
-                      dispatch({ type: 'ELIMINAR_TURNO_AL_BATE', payload: t.id });
-                    }
-                  }}
+                  onClick={() => setTurnoAEliminar(t.id)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--danger)' }}
                   title="Eliminar"
                 >
@@ -290,12 +316,25 @@ export default function TrackingPage() {
         </div>
       )}
 
-      {/* ── Modal de pitch ── */}
+      {/* ── Modales ── */}
       {zonaSeleccionada !== null && (
         <ModalPitch
           zona={zonaSeleccionada}
           onConfirmar={handleConfirmarPitch}
-          onCancelar={() => setZonaSeleccionada(null)}
+          onCancelar={() => {
+            setZonaSeleccionada(null);
+            setTurnoEditando(null);
+          }}
+        />
+      )}
+      {turnoAEliminar && (
+        <ModalConfirm
+          mensaje="¿Eliminar este lanzamiento?"
+          onConfirmar={() => {
+            dispatch({ type: 'ELIMINAR_TURNO_AL_BATE', payload: turnoAEliminar });
+            setTurnoAEliminar(null);
+          }}
+          onCancelar={() => setTurnoAEliminar(null)}
         />
       )}
     </div>

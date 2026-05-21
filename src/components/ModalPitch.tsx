@@ -41,22 +41,22 @@ interface Props {
 
 // ─── Labels ───────────────────────────────────────────────────────────────────
 const NOMBRE_ZONA: Record<number, string> = {
-  1: 'Zona 1 — Interior bajo izq.',
-  2: 'Zona 2 — Interior bajo der.',
-  3: 'Zona 3 — Interior alto izq.',
-  4: 'Zona 4 — Interior alto der.',
-  5: 'Zona 5 — Esquina inf. izq.',
-  6: 'Zona 6 — Esquina inf. der.',
-  7: 'Zona 7 — Esquina sup. izq.',
-  8: 'Zona 8 — Esquina sup. der.',
+  1: 'Zona 1',
+  2: 'Zona 2',
+  3: 'Zona 3',
+  4: 'Zona 4',
+  5: 'Zona 5',
+  6: 'Zona 6',
+  7: 'Zona 7',
+  8: 'Zona 8',
 };
 
-const TIPOS_PITCH: { value: TipoPitch; label: string; emoji: string }[] = [
-  { value: 'drop',   label: 'Drop',   emoji: '⬇️' },
-  { value: 'riser',  label: 'Riser',  emoji: '⬆️' },
-  { value: 'curva',  label: 'Curva',  emoji: '↩️' },
-  { value: 'cambio', label: 'Cambio', emoji: '🔄' },
-  { value: 'otro',   label: 'Otro',   emoji: '🥎' },
+const TIPOS_PITCH: { value: TipoPitch; label: string }[] = [
+  { value: 'drop',   label: 'Drop' },
+  { value: 'riser',  label: 'Riser' },
+  { value: 'curva',  label: 'Curva' },
+  { value: 'cambio', label: 'Cambio' },
+  { value: 'otro',   label: 'Otro' },
 ];
 
 const TIPOS_RESULTADO: { value: ResultadoAtBat; label: string; color: string; desc: string }[] = [
@@ -72,12 +72,12 @@ const TIPOS_OUT: { value: TipoOut; label: string; desc: string }[] = [
   { value: 'fly',        label: 'Fly',        desc: 'Elevado' },
 ];
 
-const TIPOS_HIT: { value: TipoHit; label: string; emoji: string }[] = [
-  { value: 'bunt',    label: 'Bunt',     emoji: '🔸' },
-  { value: 'single',  label: 'Single',   emoji: '1️⃣' },
-  { value: 'doble',   label: 'Doble',    emoji: '2️⃣' },
-  { value: 'triple',  label: 'Triple',   emoji: '3️⃣' },
-  { value: 'homerun', label: 'Home Run', emoji: '🏠' },
+const TIPOS_HIT: { value: TipoHit; label: string }[] = [
+  { value: 'bunt',    label: 'Bunt' },
+  { value: 'single',  label: 'Single' },
+  { value: 'doble',   label: 'Doble' },
+  { value: 'triple',  label: 'Triple' },
+  { value: 'homerun', label: 'Home Run' },
 ];
 
 export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
@@ -151,125 +151,105 @@ export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
     switch (paso) {
       case 'tipo_pitch':
         return (
-          <>
-            <p className="sheet-subtitle">{NOMBRE_ZONA[zona]}</p>
-            <div className="options-grid">
-              {TIPOS_PITCH.map((t) => (
-                <button key={t.value} className="option-btn" onClick={() => elegirTipoPitch(t.value)}>
-                  <span style={{ fontSize: '1.4rem' }}>{t.emoji}</span>
-                  <span>{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </>
+          <div className="options-grid">
+            {TIPOS_PITCH.map((t) => (
+              <button key={t.value} className="option-btn" onClick={() => elegirTipoPitch(t.value)}>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
         );
 
       case 'resultado':
         return (
-          <>
-            <p className="sheet-subtitle">Pitch: <strong>{estado.tipoPitch}</strong></p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {TIPOS_RESULTADO.map((r) => (
-                <button
-                  key={r.value}
-                  className="option-btn"
-                  style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 14 }}
-                  onClick={() => elegirResultado(r.value)}
-                >
-                  <span style={{ fontSize: '1.3rem', fontWeight: 900, color: r.color, width: 50 }}>
-                    {r.label}
-                  </span>
-                  <span className="option-btn__label" style={{ fontSize: '0.82rem' }}>{r.desc}</span>
-                </button>
-              ))}
-            </div>
-          </>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {TIPOS_RESULTADO.map((r) => (
+              <button
+                key={r.value}
+                className="option-btn"
+                style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 14 }}
+                onClick={() => elegirResultado(r.value)}
+              >
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: r.color, width: 50 }}>
+                  {r.label}
+                </span>
+                <span className="option-btn__label" style={{ fontSize: '0.82rem', marginTop: 0 }}>{r.desc}</span>
+              </button>
+            ))}
+          </div>
         );
 
       case 'detalle_out':
         return (
-          <>
-            <p className="sheet-subtitle">Tipo de out</p>
-            <div className="options-grid">
-              {TIPOS_OUT.map((t) => (
-                <button key={t.value} className="option-btn" onClick={() => elegirTipoOut(t.value)}>
-                  <span>{t.label}</span>
-                  <span className="option-btn__label">{t.desc}</span>
-                </button>
-              ))}
-            </div>
-          </>
+          <div className="options-grid">
+            {TIPOS_OUT.map((t) => (
+              <button key={t.value} className="option-btn" onClick={() => elegirTipoOut(t.value)}>
+                <span>{t.label}</span>
+                <span className="option-btn__label">{t.desc}</span>
+              </button>
+            ))}
+          </div>
         );
 
       case 'detalle_hit':
         return (
-          <>
-            <p className="sheet-subtitle">Tipo de hit</p>
-            <div className="options-grid">
-              {TIPOS_HIT.map((t) => (
-                <button key={t.value} className="option-btn" onClick={() => elegirTipoHit(t.value)}>
-                  <span style={{ fontSize: '1.2rem' }}>{t.emoji}</span>
-                  <span>{t.label}</span>
-                </button>
-              ))}
-            </div>
-          </>
+          <div className="options-grid">
+            {TIPOS_HIT.map((t) => (
+              <button key={t.value} className="option-btn" onClick={() => elegirTipoHit(t.value)}>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
         );
 
       case 'numero_defensor': {
-        const esHit = estado.resultado === 'HIT';
         return (
-          <>
-            <p className="sheet-subtitle">
-              {esHit ? 'Ubicación del bateo' : `Defensor (${estado.tipoOut})`}
-            </p>
-            <div className="number-grid">
-              {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as NumeroDefensor[]).map((n) => (
-                <button key={n} className="number-btn" onClick={() => elegirNumero(n)}>
-                  {n}
-                </button>
-              ))}
-            </div>
-          </>
+          <div className="number-grid">
+            {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as NumeroDefensor[]).map((n) => (
+              <button key={n} className="number-btn" onClick={() => elegirNumero(n)}>
+                {n}
+              </button>
+            ))}
+          </div>
         );
       }
 
       case 'calidad':
         return (
-          <>
-            <p className="sheet-subtitle">Calidad del contacto</p>
-            <div className="options-grid">
-              <button
-                className="option-btn"
-                style={{ padding: '24px 8px' }}
-                onClick={() => elegirCalidad('soft')}
-              >
-                <span style={{ fontSize: '1.6rem' }}>🐌</span>
-                <span>Soft</span>
-                <span className="option-btn__label">Contacto débil</span>
-              </button>
-              <button
-                className="option-btn"
-                style={{ padding: '24px 8px' }}
-                onClick={() => elegirCalidad('hard')}
-              >
-                <span style={{ fontSize: '1.6rem' }}>💥</span>
-                <span>Hard</span>
-                <span className="option-btn__label">Contacto fuerte</span>
-              </button>
-            </div>
-          </>
+          <div className="options-grid">
+            <button
+              className="option-btn"
+              style={{ padding: '24px 8px' }}
+              onClick={() => elegirCalidad('soft')}
+            >
+              <span>Soft</span>
+              <span className="option-btn__label">Contacto débil</span>
+            </button>
+            <button
+              className="option-btn"
+              style={{ padding: '24px 8px' }}
+              onClick={() => elegirCalidad('hard')}
+            >
+              <span>Hard</span>
+              <span className="option-btn__label">Contacto fuerte</span>
+            </button>
+          </div>
         );
     }
   };
 
   const titulos: Record<PasoModal, string> = {
-    tipo_pitch:      'Tipo de lanzamiento',
+    tipo_pitch:      NOMBRE_ZONA[zona],
     resultado:       'Resultado al bate',
     detalle_out:     'Tipo de out',
     detalle_hit:     'Tipo de hit',
-    numero_defensor: estado.resultado === 'HIT' ? 'Ubicación' : 'Defensor',
+    numero_defensor: estado.resultado === 'HIT' ? 'Ubicación del bateo' : `Defensor (${estado.tipoOut})`,
     calidad:         'Calidad del contacto',
+  };
+
+  const subtitulos: Partial<Record<PasoModal, React.ReactNode>> = {
+    tipo_pitch:      'Tipo de lanzamiento',
+    resultado:       <>Pitch: <strong>{estado.tipoPitch}</strong></>,
   };
 
   return (
@@ -278,25 +258,32 @@ export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
         <div className="sheet-handle" />
 
         {/* Breadcrumb / título */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-          {paso !== 'tipo_pitch' && (
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+          {paso !== 'tipo_pitch' ? (
             <button
               onClick={volver}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--text-secondary)', fontSize: '1.2rem', padding: '0 4px',
+                color: 'var(--text-secondary)', fontSize: '1.2rem', padding: '0 4px', width: 32, textAlign: 'left'
               }}
               aria-label="Volver"
             >
               ←
             </button>
-          )}
-          <h2 className="sheet-title" style={{ margin: 0, flex: 1 }}>{titulos[paso]}</h2>
+          ) : <div style={{ width: 32 }} />}
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            <h2 className="sheet-title" style={{ margin: 0 }}>{titulos[paso]}</h2>
+            {subtitulos[paso] && (
+              <p className="sheet-subtitle" style={{ margin: 0 }}>{subtitulos[paso]}</p>
+            )}
+          </div>
+
           <button
             onClick={onCancelar}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text-muted)', fontSize: '1.3rem', padding: '0 4px',
+              color: 'var(--text-muted)', fontSize: '1.3rem', padding: '0 4px', width: 32, textAlign: 'right'
             }}
             aria-label="Cancelar"
           >
@@ -304,7 +291,7 @@ export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
           </button>
         </div>
 
-        <div style={{ marginTop: 12 }}>
+        <div>
           {renderContenido()}
         </div>
       </div>

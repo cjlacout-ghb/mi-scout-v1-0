@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useScout } from '@/context/ScoutContext';
 import { generarId } from '@/lib/storage';
+import ModalConfirm from '@/components/ModalConfirm';
 import type { Bateador, Partido } from '@/lib/types';
 
 // ─── Modal: Nuevo Partido ─────────────────────────────────────────────────────
@@ -100,11 +101,13 @@ const FORM_VACIO: FormBateador = { numero: '', apellido: '', nombre: '', equipo:
 function ModalBateador({
   inicial,
   titulo,
+  subtitulo,
   onGuardar,
   onClose,
 }: {
   inicial?: FormBateador;
   titulo: string;
+  subtitulo?: string;
   onGuardar: (d: FormBateador) => void;
   onClose: () => void;
 }) {
@@ -128,16 +131,11 @@ function ModalBateador({
       <div className="bottom-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-handle" />
         <h2 className="sheet-title">{titulo}</h2>
+        {subtitulo && <p className="sheet-subtitle">{subtitulo}</p>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10 }}>
-            <div className="form-group">
-              <label className="label"># Camiseta *</label>
-              <input className="input" placeholder="7" value={form.numero} onChange={set('numero')} maxLength={3} inputMode="numeric" />
-            </div>
-            <div className="form-group">
-              <label className="label">Equipo</label>
-              <input className="input" placeholder="AUS" value={form.equipo} onChange={set('equipo')} maxLength={10} />
-            </div>
+          <div className="form-group" style={{ width: '40%' }}>
+            <label className="label"># Camiseta *</label>
+            <input className="input" placeholder="7" value={form.numero} onChange={set('numero')} maxLength={3} inputMode="numeric" />
           </div>
           <div className="form-group">
             <label className="label">Apellido *</label>
@@ -179,8 +177,9 @@ function ModalSustitucion({
           numero: form.numero.trim(),
           apellido: form.apellido.trim().toUpperCase(),
           nombre: form.nombre.trim().toUpperCase(),
-          equipo: form.equipo.trim().toUpperCase() || saliente.equipo,
+          equipo: saliente.equipo,
           activo: true,
+          esAbridor: false,
         },
         inning,
       },
@@ -198,15 +197,9 @@ function ModalSustitucion({
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 4 }}>
           <p className="text-xs text-secondary" style={{ textAlign: 'center' }}>Ingresa los datos del jugador entrante</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10 }}>
-            <div className="form-group">
-              <label className="label"># Camiseta *</label>
-              <input className="input" placeholder="99" value={form.numero} onChange={set('numero')} maxLength={3} inputMode="numeric" />
-            </div>
-            <div className="form-group">
-              <label className="label">Equipo</label>
-              <input className="input" placeholder={saliente.equipo} value={form.equipo} onChange={set('equipo')} maxLength={10} />
-            </div>
+          <div className="form-group" style={{ width: '40%' }}>
+            <label className="label"># Camiseta *</label>
+            <input className="input" placeholder="99" value={form.numero} onChange={set('numero')} maxLength={3} inputMode="numeric" />
           </div>
           <div className="form-group">
             <label className="label">Apellido *</label>
@@ -242,29 +235,31 @@ export default function LineupPage() {
 
   const [showNuevoPartido, setShowNuevoPartido] = useState(false);
   const [showAgregarBateador, setShowAgregarBateador] = useState(false);
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
   const [editando, setEditando] = useState<Bateador | null>(null);
   const [sustituyendo, setSustituyendo] = useState<Bateador | null>(null);
 
   const agregarBateador = (d: FormBateador) => {
-    const orden = estado.lineup.length + 1;
+    const ordenMaximo = Math.max(0, ...estado.lineup.map(b => b.orden));
+    const orden = ordenMaximo + 1;
     dispatch({
       type: 'AGREGAR_BATEADOR',
-      payload: { ...d, orden, activo: true },
+      payload: { ...d, equipo: estado.partido!.rival, orden, activo: true, esAbridor: true },
     });
   };
 
   const editarBateador = (b: Bateador, d: FormBateador) => {
-    dispatch({ type: 'EDITAR_BATEADOR', payload: { id: b.id, datos: d } });
+    dispatch({ type: 'EDITAR_BATEADOR', payload: { id: b.id, datos: { ...d, equipo: b.equipo } } });
   };
 
-  const setBateadorActual = (idx: number) => {
+  const seleccionarAlBate = (idx: number) => {
     dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: idx });
-    router.push('/tracking');
   };
 
-  // Armar lista mostrando sustituciones
   const filas: Array<{ bateador: Bateador; idxActivo?: number; esActual: boolean }> = [];
   const activos = estado.lineup.filter((b) => b.activo);
+  const ordenMaximo = Math.max(0, ...estado.lineup.map(b => b.orden));
+
   for (const b of estado.lineup) {
     const idxActivo = activos.indexOf(b);
     filas.push({ bateador: b, idxActivo: idxActivo >= 0 ? idxActivo : undefined, esActual: bateadorActual?.id === b.id });
@@ -280,26 +275,6 @@ export default function LineupPage() {
           animation: 'fadeIn 0.5s ease'
         }}>
           <div style={{ marginBottom: 32 }}>
-            <div style={{ 
-              width: 80, height: 80, background: 'var(--bg-elevated)', borderRadius: '50%', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', 
-              margin: '0 auto 20px', border: '1px solid var(--border)',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
-            }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="#CCFF00" stroke="#000000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M 6.5 4.5 A 9 9 0 0 0 6.5 19.5" />
-                <path d="M 17.5 4.5 A 9 9 0 0 1 17.5 19.5" />
-                <path d="M 7.5 7 L 5 8" />
-                <path d="M 8.5 10 L 5.5 11" />
-                <path d="M 8.5 14 L 5.5 13" />
-                <path d="M 7.5 17 L 5 16" />
-                <path d="M 16.5 7 L 19 8" />
-                <path d="M 15.5 10 L 18.5 11" />
-                <path d="M 15.5 14 L 18.5 13" />
-                <path d="M 16.5 17 L 19 16" />
-              </svg>
-            </div>
             <h1 style={{ fontSize: '2.2rem', fontWeight: 900, lineHeight: 1.1, marginBottom: 16, letterSpacing: '-0.03em' }}>
               Mi<span style={{ color: 'var(--accent)' }}>Scout</span>
             </h1>
@@ -310,7 +285,7 @@ export default function LineupPage() {
           
           <div style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <button className="btn btn-primary btn-lg btn-full" style={{ boxShadow: 'var(--glow-accent)', padding: '18px 24px', fontSize: '1.05rem' }} onClick={() => setShowNuevoPartido(true)}>
-              ▶ Comenzar Scouting
+              Comenzar
             </button>
 
           </div>
@@ -320,14 +295,12 @@ export default function LineupPage() {
       {/* ── Con partido ── */}
       {estado.partido && (
         <>
-          {/* Info del partido */}
-          <div style={{ padding: '12px 16px 4px' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-              <span style={{ fontSize: '1rem', fontWeight: 800 }}>vs {estado.partido.rival}</span>
-              <span className="badge badge-accent">Inning {estado.inningActual}</span>
+          {/* Info adicional del evento */}
+          {estado.partido.descripcion && estado.partido.descripcion !== `vs ${estado.partido.rival}` && (
+            <div style={{ padding: '12px 16px 4px' }}>
+              <p className="text-sm text-secondary" style={{ fontWeight: 600 }}>{estado.partido.descripcion}</p>
             </div>
-            <p className="text-xs text-secondary" style={{ marginTop: 2 }}>{estado.partido.descripcion}</p>
-          </div>
+          )}
 
           {/* Cabecera de tabla */}
           <div style={{
@@ -339,7 +312,6 @@ export default function LineupPage() {
             <span className="text-xs text-secondary" style={{ width: 44, textAlign: 'center' }}>NUM</span>
             <span className="text-xs text-secondary" style={{ flex: 1, paddingLeft: 8 }}>APELLIDO Y NOMBRE</span>
             <span className="text-xs text-secondary" style={{ width: 36, textAlign: 'right' }}>TEAM</span>
-            <span className="text-xs text-secondary" style={{ width: 40, textAlign: 'center' }}>TRACK</span>
           </div>
 
           {/* Filas del lineup */}
@@ -356,9 +328,15 @@ export default function LineupPage() {
                 <div
                   className={`lineup-row${esActual ? ' current' : ''}${!b.activo ? ' inactivo' : ''}`}
                   onClick={() => {
-                    if (!b.activo) return;
-                    if (idxActivo !== undefined) setEditando(b);
+                    if (!b.activo || idxActivo === undefined) return;
+                    seleccionarAlBate(idxActivo);
                   }}
+                  onDoubleClick={() => {
+                    if (!b.activo || idxActivo === undefined) return;
+                    seleccionarAlBate(idxActivo);
+                    router.push('/tracking');
+                  }}
+                  style={{ cursor: b.activo ? 'pointer' : 'default' }}
                 >
                   <span className="lineup-orden">{b.orden}.</span>
                   <div className="lineup-numero">{b.numero}</div>
@@ -366,20 +344,6 @@ export default function LineupPage() {
                     {b.apellido}{b.nombre ? `, ${b.nombre}` : ''}
                   </div>
                   <span className="lineup-equipo">{b.equipo}</span>
-
-                  {/* Track button — ir al tracking de este bateador */}
-                  <button
-                    className="lineup-track"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!b.activo || idxActivo === undefined) return;
-                      setBateadorActual(idxActivo);
-                    }}
-                    aria-label={`Trackear ${b.apellido}`}
-                    style={{ background: 'none', border: 'none', cursor: b.activo ? 'pointer' : 'default' }}
-                  >
-                    <CrosshairIcon color={esActual ? 'var(--accent)' : b.activo ? 'var(--text-muted)' : 'var(--border)'} />
-                  </button>
                 </div>
 
                 {/* Nota de sustitución */}
@@ -394,20 +358,18 @@ export default function LineupPage() {
 
           {/* Acciones */}
           <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <button className="btn btn-ghost btn-full" onClick={() => setShowAgregarBateador(true)}>
-              + Agregar bateador
-            </button>
-            {bateadorActual && (
-              <button className="btn btn-ghost btn-full" style={{ color: 'var(--warning)', borderColor: 'var(--warning)' }} onClick={() => setSustituyendo(bateadorActual)}>
-                ⇄ Sustitución del bateador actual
+            {ordenMaximo < 10 && (
+              <button className="btn btn-primary btn-full" onClick={() => setShowAgregarBateador(true)}>
+                Completar line-up
               </button>
             )}
-            <button className="btn btn-danger btn-full" onClick={() => {
-              if (confirm('¿Iniciar un partido nuevo? Se perderán los datos actuales.')) {
-                dispatch({ type: 'NUEVO_PARTIDO' });
-              }
-            }}>
-              🗑 Nuevo partido
+            {bateadorActual && (
+              <button className="btn btn-ghost btn-full" style={{ color: 'var(--warning)', borderColor: 'var(--warning)' }} onClick={() => setSustituyendo(bateadorActual)}>
+                Sustitución del bateador actual
+              </button>
+            )}
+            <button className="btn btn-danger btn-full" onClick={() => setShowConfirmReset(true)}>
+              Nuevo partido
             </button>
           </div>
         </>
@@ -418,6 +380,7 @@ export default function LineupPage() {
       {showAgregarBateador && (
         <ModalBateador
           titulo="Agregar bateador"
+          subtitulo={`Orden al bate: ${ordenMaximo + 1}`}
           onGuardar={agregarBateador}
           onClose={() => setShowAgregarBateador(false)}
         />
@@ -425,6 +388,7 @@ export default function LineupPage() {
       {editando && (
         <ModalBateador
           titulo="Editar bateador"
+          subtitulo={`Orden al bate: ${editando.orden}`}
           inicial={{ numero: editando.numero, apellido: editando.apellido, nombre: editando.nombre, equipo: editando.equipo }}
           onGuardar={(d) => editarBateador(editando, d)}
           onClose={() => setEditando(null)}
@@ -437,8 +401,16 @@ export default function LineupPage() {
           onClose={() => setSustituyendo(null)}
         />
       )}
-
-
+      {showConfirmReset && (
+        <ModalConfirm
+          mensaje="¿Iniciar un partido nuevo? Se perderán los datos actuales."
+          onConfirmar={() => {
+            dispatch({ type: 'NUEVO_PARTIDO' });
+            setShowConfirmReset(false);
+          }}
+          onCancelar={() => setShowConfirmReset(false)}
+        />
+      )}
     </div>
   );
 }

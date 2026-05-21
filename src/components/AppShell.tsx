@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useScout } from '@/context/ScoutContext';
+import ModalConfirm from '@/components/ModalConfirm';
 
 // ─── Íconos SVG inline ────────────────────────────────────────────────────────
 const IconLineup = () => (
@@ -53,30 +55,47 @@ const NAV_ITEMS = [
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { estado } = useScout();
+  const { estado, dispatch } = useScout();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const partidoInfo = estado.partido;
 
   return (
     <div className="app-shell">
+      {showConfirm && (
+        <ModalConfirm
+          mensaje="¿Volver al inicio? Se cerrará el partido actual."
+          onConfirmar={() => {
+            dispatch({ type: 'NUEVO_PARTIDO' });
+            setShowConfirm(false);
+            router.push('/');
+          }}
+          onCancelar={() => setShowConfirm(false)}
+        />
+      )}
       {/* Header */}
       <header className="app-header">
-        <Link 
-          href="/"
+        <div 
           className="app-header__logo" 
-          style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', cursor: 'pointer', textDecoration: 'none' }}
+          style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', cursor: 'pointer' }}
+          onClick={() => {
+            if (estado.partido) {
+              setShowConfirm(true);
+            } else {
+              router.push('/');
+            }
+          }}
         >
           <div>Mi<span>Scout</span></div>
           <span style={{ fontSize: '0.7rem', color: '#ffffff', fontWeight: 400, letterSpacing: '0.5px' }}>v1.0</span>
-        </Link>
+        </div>
         {partidoInfo && (
           <div className="app-header__info">
+            <div>
+              {new Date(partidoInfo.fecha).toLocaleDateString('es-AR')}
+            </div>
             <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-primary)' }}>
               vs {partidoInfo.rival}
-            </div>
-            <div>
-              Inning {estado.inningActual} &nbsp;·&nbsp;{' '}
-              {new Date(partidoInfo.fecha).toLocaleDateString('es-AR')}
             </div>
           </div>
         )}

@@ -51,6 +51,7 @@ export interface Bateador {
   nombre: string;
   equipo: string;
   activo: boolean;
+  esAbridor: boolean;          // true si inició el partido, false si es sustituto
   reemplazadoPorId?: string;   // ID del bateador que lo reemplazó
   reemplazadoAInning?: number;
 }

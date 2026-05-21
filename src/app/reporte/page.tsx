@@ -127,7 +127,7 @@ export default function ReportePage() {
         {/* Equipo */}
         <div className="card">
           <p style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: 10 }}>👥 Reporte del equipo</p>
-          <button className="btn btn-ghost btn-full" style={{ borderColor: 'var(--info)', color: 'var(--info)' }} onClick={generarEquipo}>
+          <button className="btn btn-primary btn-full" onClick={generarEquipo}>
             Generar reporte completo — {partido.rival}
           </button>
         </div>
@@ -142,7 +142,7 @@ export default function ReportePage() {
               className="btn btn-primary btn-sm"
               onClick={descargar}
             >
-              ⬇ Descargar .md
+              Descargar .md
             </button>
           </div>
           <div
@@ -166,7 +166,7 @@ export default function ReportePage() {
             style={{ marginTop: 12 }}
             onClick={descargar}
           >
-            ⬇ Descargar .md
+            Descargar .md
           </button>
           <p className="text-xs text-secondary" style={{ textAlign: 'center', marginTop: 6 }}>
             El archivo se guardará en tu dispositivo
