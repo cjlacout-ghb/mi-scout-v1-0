@@ -6,15 +6,18 @@ import { cargarEstado, guardarEstado, estadoInicial, generarId } from '@/lib/sto
 
 // ─── Acciones ─────────────────────────────────────────────────────────────────
 type Accion =
-  | { type: 'INICIAR_PARTIDO'; payload: { partido: Partido; lineup: Bateador[] } }
+  | { type: 'INICIAR_PARTIDO'; payload: { partido: Partido; lineupVisitante: Bateador[]; lineupLocal: Bateador[] } }
   | { type: 'NUEVO_PARTIDO' }
   | { type: 'AGREGAR_BATEADOR'; payload: Omit<Bateador, 'id'> }
-  | { type: 'EDITAR_BATEADOR'; payload: { id: string; datos: Partial<Omit<Bateador, 'id'>> } }
-  | { type: 'REORDENAR_BATEADORES'; payload: Bateador[] }
-  | { type: 'SUSTITUIR_BATEADOR'; payload: { salienteId: string; entrante: Omit<Bateador, 'id' | 'orden'>; inning: number } }
+  | { type: 'AGREGAR_BATEADORES_MASIVO'; payload: Array<Omit<Bateador, 'id'>> }
+  | { type: 'EDITAR_BATEADOR'; payload: { id: string; rol: 'visitante' | 'local'; datos: Partial<Omit<Bateador, 'id'>> } }
+  | { type: 'REORDENAR_BATEADORES'; payload: { rol: 'visitante' | 'local'; bateadores: Bateador[] } }
+  | { type: 'SUSTITUIR_BATEADOR'; payload: { salienteId: string; rol: 'visitante' | 'local'; entrante: Omit<Bateador, 'id' | 'orden'>; inning: number } }
   | { type: 'REGISTRAR_TURNO'; payload: Omit<TurnoAlBate, 'id' | 'timestamp'> }
   | { type: 'AVANZAR_BATEADOR' }
-  | { type: 'SET_BATEADOR_ACTUAL'; payload: number }
+  | { type: 'CAMBIAR_MITAD_INNING' }
+  | { type: 'RETROCEDER_MITAD_INNING' }
+  | { type: 'SET_BATEADOR_ACTUAL'; payload: { rol: 'visitante' | 'local'; indice: number } }
   | { type: 'SET_INNING'; payload: number }
   | { type: 'EDITAR_TURNO_AL_BATE'; payload: { id: string; datos: Partial<Omit<TurnoAlBate, 'id' | 'timestamp'>> } }
   | { type: 'ELIMINAR_TURNO_AL_BATE'; payload: string }
@@ -33,31 +36,55 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
       return {
         ...estadoInicial,
         partido: accion.payload.partido,
-        lineup: accion.payload.lineup,
+        lineupVisitante: accion.payload.lineupVisitante,
+        lineupLocal: accion.payload.lineupLocal,
       };
 
     case 'AGREGAR_BATEADOR': {
       const nuevo: Bateador = { ...accion.payload, id: generarId() };
-      return { ...estado, lineup: [...estado.lineup, nuevo] };
+      if (nuevo.rol === 'visitante') {
+        return { ...estado, lineupVisitante: [...estado.lineupVisitante, nuevo] };
+      }
+      return { ...estado, lineupLocal: [...estado.lineupLocal, nuevo] };
+    }
+
+    case 'AGREGAR_BATEADORES_MASIVO': {
+      if (accion.payload.length === 0) return estado;
+      const rol = accion.payload[0].rol;
+      const nuevos: Bateador[] = accion.payload.map(b => ({ ...b, id: generarId() }));
+      if (rol === 'visitante') {
+        return { ...estado, lineupVisitante: [...estado.lineupVisitante, ...nuevos] };
+      }
+      return { ...estado, lineupLocal: [...estado.lineupLocal, ...nuevos] };
     }
 
     case 'EDITAR_BATEADOR': {
-      const lineup = estado.lineup.map((b) =>
+      const isVisitante = accion.payload.rol === 'visitante';
+      const lineup = isVisitante ? estado.lineupVisitante : estado.lineupLocal;
+      const newLineup = lineup.map((b) =>
         b.id === accion.payload.id ? { ...b, ...accion.payload.datos } : b
       );
-      return { ...estado, lineup };
+      if (isVisitante) return { ...estado, lineupVisitante: newLineup };
+      return { ...estado, lineupLocal: newLineup };
     }
 
-    case 'REORDENAR_BATEADORES':
-      return { ...estado, lineup: accion.payload };
+    case 'REORDENAR_BATEADORES': {
+      if (accion.payload.rol === 'visitante') {
+        return { ...estado, lineupVisitante: accion.payload.bateadores };
+      }
+      return { ...estado, lineupLocal: accion.payload.bateadores };
+    }
 
     case 'SUSTITUIR_BATEADOR': {
-      const { salienteId, entrante, inning } = accion.payload;
-      const saliente = estado.lineup.find((b) => b.id === salienteId);
+      const { salienteId, rol, entrante, inning } = accion.payload;
+      const isVisitante = rol === 'visitante';
+      const lineup = isVisitante ? estado.lineupVisitante : estado.lineupLocal;
+      
+      const saliente = lineup.find((b) => b.id === salienteId);
       if (!saliente) return estado;
 
       const nuevoId = generarId();
-      const lineup = estado.lineup.map((b) => {
+      const newLineup = lineup.map((b) => {
         if (b.id === salienteId) {
           return { ...b, activo: false, reemplazadoPorId: nuevoId, reemplazadoAInning: inning };
         }
@@ -66,16 +93,17 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
 
       const nuevoBateador: Bateador = {
         ...entrante,
+        rol,
         id: nuevoId,
         orden: saliente.orden,
         activo: true,
       };
 
-      // Insertar en la misma posición del saliente
-      const idx = lineup.findIndex((b) => b.id === salienteId);
-      lineup.splice(idx + 1, 0, nuevoBateador);
+      const idx = newLineup.findIndex((b) => b.id === salienteId);
+      newLineup.splice(idx + 1, 0, nuevoBateador);
 
-      return { ...estado, lineup };
+      if (isVisitante) return { ...estado, lineupVisitante: newLineup };
+      return { ...estado, lineupLocal: newLineup };
     }
 
     case 'REGISTRAR_TURNO': {
@@ -100,17 +128,47 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
     }
 
     case 'AVANZAR_BATEADOR': {
-      const activos = estado.lineup.filter((b) => b.activo);
+      const isVisitante = estado.mitadInning === 'alta';
+      const lineup = isVisitante ? estado.lineupVisitante : estado.lineupLocal;
+      const activos = lineup.filter((b) => b.activo);
       if (activos.length === 0) return estado;
-      const siguiente = (estado.bateadorActualIndex + 1) % activos.length;
-      const vueltasAlOrden = siguiente < estado.bateadorActualIndex
-        ? estado.vueltasAlOrden + 1
-        : estado.vueltasAlOrden;
-      return { ...estado, bateadorActualIndex: siguiente, vueltasAlOrden };
+      
+      const indiceActual = isVisitante ? estado.indiceVisitante : estado.indiceLocal;
+      const siguiente = (indiceActual + 1) % activos.length;
+      
+      if (isVisitante) {
+        const vueltas = siguiente < indiceActual ? estado.vueltasAlOrdenVisitante + 1 : estado.vueltasAlOrdenVisitante;
+        return { ...estado, indiceVisitante: siguiente, vueltasAlOrdenVisitante: vueltas };
+      } else {
+        const vueltas = siguiente < indiceActual ? estado.vueltasAlOrdenLocal + 1 : estado.vueltasAlOrdenLocal;
+        return { ...estado, indiceLocal: siguiente, vueltasAlOrdenLocal: vueltas };
+      }
     }
 
-    case 'SET_BATEADOR_ACTUAL':
-      return { ...estado, bateadorActualIndex: accion.payload };
+    case 'CAMBIAR_MITAD_INNING': {
+      if (estado.mitadInning === 'alta') {
+        return { ...estado, mitadInning: 'baja' };
+      } else {
+        return { ...estado, mitadInning: 'alta', inningActual: estado.inningActual + 1 };
+      }
+    }
+
+    case 'RETROCEDER_MITAD_INNING': {
+      if (estado.mitadInning === 'baja') {
+        return { ...estado, mitadInning: 'alta' };
+      } else {
+        const nuevoInning = Math.max(1, estado.inningActual - 1);
+        if (nuevoInning === estado.inningActual) return estado;
+        return { ...estado, mitadInning: 'baja', inningActual: nuevoInning };
+      }
+    }
+
+    case 'SET_BATEADOR_ACTUAL': {
+      if (accion.payload.rol === 'visitante') {
+        return { ...estado, indiceVisitante: accion.payload.indice };
+      }
+      return { ...estado, indiceLocal: accion.payload.indice };
+    }
 
     case 'SET_INNING':
       return { ...estado, inningActual: accion.payload };
@@ -126,6 +184,7 @@ interface ContextType {
   dispatch: React.Dispatch<Accion>;
   bateadorActual: Bateador | null;
   bateadoresActivos: Bateador[];
+  equipoAlBate: 'visitante' | 'local';
 }
 
 const ScoutContext = createContext<ContextType | null>(null);
@@ -150,11 +209,14 @@ export function ScoutProvider({ children }: { children: React.ReactNode }) {
     }
   }, [estado]);
 
-  const bateadoresActivos = estado.lineup.filter((b) => b.activo);
-  const bateadorActual = bateadoresActivos[estado.bateadorActualIndex] ?? null;
+  const equipoAlBate = estado.mitadInning === 'alta' ? 'visitante' : 'local';
+  const lineupActual = (equipoAlBate === 'visitante' ? estado.lineupVisitante : estado.lineupLocal) || [];
+  const bateadoresActivos = lineupActual.filter((b) => b.activo);
+  const indiceActivo = equipoAlBate === 'visitante' ? (estado.indiceVisitante || 0) : (estado.indiceLocal || 0);
+  const bateadorActual = bateadoresActivos[indiceActivo] ?? null;
 
   return (
-    <ScoutContext.Provider value={{ estado, dispatch, bateadorActual, bateadoresActivos }}>
+    <ScoutContext.Provider value={{ estado, dispatch, bateadorActual, bateadoresActivos, equipoAlBate }}>
       {children}
     </ScoutContext.Provider>
   );

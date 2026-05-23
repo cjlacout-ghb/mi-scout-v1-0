@@ -27,7 +27,7 @@ export default function ReportePage() {
   const [preview, setPreview] = useState<string>('');
   const [modo, setModo] = useState<'individual' | 'equipo' | null>(null);
 
-  const todos = estado.lineup;
+  const todos = [...(estado.lineupVisitante || []), ...(estado.lineupLocal || [])];
   const partido = estado.partido;
 
   if (!partido) {
@@ -48,13 +48,13 @@ export default function ReportePage() {
     setSelId(b.id);
   };
 
-  const generarEquipo = () => {
-    let md = `# Reporte de Scouting — Equipo ${partido.rival}\n\n`;
+  const generarEquipo = (equipo: string, lineup: Bateador[]) => {
+    let md = `# Reporte de Scouting — Equipo ${equipo}\n\n`;
     md += `**Partido:** ${partido.descripcion}  \n`;
     md += `**Fecha:** ${new Date(partido.fecha).toLocaleDateString('es-AR')}\n\n`;
     md += `---\n\n`;
 
-    for (const b of todos) {
+    for (const b of lineup) {
       const stats = calcularEstadisticas(b.id, estado.turnosAlBate);
       if (stats.turnosAlBate === 0) continue;
       md += `## #${b.numero} ${b.apellido}, ${b.nombre}\n\n`;
@@ -77,7 +77,7 @@ export default function ReportePage() {
   const descargar = () => {
     if (!preview) return;
     if (modo === 'equipo') {
-      descargarMD(preview, `scout_${slugify(partido.rival)}_equipo.md`);
+      descargarMD(preview, `scout_equipo.md`);
     } else {
       const b = todos.find((x) => x.id === selId);
       if (!b) return;
@@ -89,7 +89,7 @@ export default function ReportePage() {
     <div style={{ paddingBottom: 24 }}>
       <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
         <p className="text-xs text-secondary" style={{ marginBottom: 2 }}>{partido.descripcion}</p>
-        <p style={{ fontWeight: 800, fontSize: '1rem' }}>vs {partido.rival}</p>
+        <p style={{ fontWeight: 800, fontSize: '1rem' }}>{partido.visitante} vs {partido.local}</p>
       </div>
 
       {/* Botones principales */}
@@ -125,10 +125,13 @@ export default function ReportePage() {
         </div>
 
         {/* Equipo */}
-        <div className="card">
-          <p style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: 10 }}>👥 Reporte del equipo</p>
-          <button className="btn btn-primary btn-full" onClick={generarEquipo}>
-            Generar reporte completo — {partido.rival}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <p style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: 4 }}>👥 Reporte del equipo</p>
+          <button className="btn btn-primary btn-full" onClick={() => generarEquipo(partido.visitante, estado.lineupVisitante)}>
+            Generar reporte completo — {partido.visitante} (Visitante)
+          </button>
+          <button className="btn btn-primary btn-full" onClick={() => generarEquipo(partido.local, estado.lineupLocal)}>
+            Generar reporte completo — {partido.local} (Local)
           </button>
         </div>
       </div>

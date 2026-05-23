@@ -8,7 +8,7 @@ import ModalConfirm from '@/components/ModalConfirm';
 import type { ZonaStrike, TurnoAlBate, Coordenadas } from '@/lib/types';
 
 export default function TrackingPage() {
-  const { estado, dispatch, bateadorActual, bateadoresActivos } = useScout();
+  const { estado, dispatch, bateadorActual, bateadoresActivos, equipoAlBate } = useScout();
   const [zonaSeleccionada, setZonaSeleccionada] = useState<ZonaStrike | null>(null);
   const [coordenadasSeleccionadas, setCoordenadasSeleccionadas] = useState<Coordenadas | null>(null);
   const [turnoEditando, setTurnoEditando] = useState<TurnoAlBate | null>(null);
@@ -104,11 +104,16 @@ export default function TrackingPage() {
     setCoordenadasSeleccionadas(null);
   };
 
-  const cambiarInning = (delta: number) => {
+  const avanzarMitad = () => {
     setEsperandoConfirmacion(false);
     setTurnoEditando(null);
-    const nuevo = Math.max(1, estado.inningActual + delta);
-    dispatch({ type: 'SET_INNING', payload: nuevo });
+    dispatch({ type: 'CAMBIAR_MITAD_INNING' });
+  };
+
+  const retrocederMitad = () => {
+    setEsperandoConfirmacion(false);
+    setTurnoEditando(null);
+    dispatch({ type: 'RETROCEDER_MITAD_INNING' });
   };
 
   // Contar stats rápidas del bateador actual
@@ -154,10 +159,13 @@ export default function TrackingPage() {
 
           {/* Inning control */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <button onClick={() => cambiarInning(1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1rem' }}>▲</button>
+            <button onClick={retrocederMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1rem' }}>◀</button>
             <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Inn</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text-primary)' }}>{estado.inningActual}</div>
-            <button onClick={() => cambiarInning(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1rem' }}>▼</button>
+            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              {estado.mitadInning === 'alta' ? <span style={{ color: 'var(--text-secondary)' }}>▲</span> : <span style={{ color: 'var(--text-secondary)' }}>▼</span>}
+              {estado.inningActual}
+            </div>
+            <button onClick={avanzarMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1rem' }}>▶</button>
           </div>
         </div>
 
@@ -246,15 +254,15 @@ export default function TrackingPage() {
               onClick={() => {
                 setEsperandoConfirmacion(false);
                 setTurnoEditando(null);
-                dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: i });
+                dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: { rol: equipoAlBate, indice: i } });
               }}
               style={{
                 flexShrink: 0,
                 padding: '6px 10px',
                 borderRadius: 8,
-                background: i === estado.bateadorActualIndex ? 'var(--accent-dim)' : 'var(--bg-elevated)',
-                border: `1px solid ${i === estado.bateadorActualIndex ? 'var(--accent)' : 'var(--border)'}`,
-                color: i === estado.bateadorActualIndex ? 'var(--accent)' : 'var(--text-secondary)',
+              background: b.id === bateadorActual?.id ? 'var(--accent-dim)' : 'var(--bg-elevated)',
+              border: `1px solid ${b.id === bateadorActual?.id ? 'var(--accent)' : 'var(--border)'}`,
+              color: b.id === bateadorActual?.id ? 'var(--accent)' : 'var(--text-secondary)',
                 fontSize: '0.75rem',
                 fontWeight: 700,
                 cursor: 'pointer',

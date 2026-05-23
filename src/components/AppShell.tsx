@@ -74,9 +74,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         />
       )}
       {/* Header */}
-      <header className="app-header">
+      <header className="app-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px' }}>
         <div 
-          className="app-header__logo" 
+          className="app-header__logo"
           style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', cursor: 'pointer' }}
           onClick={() => {
             if (estado.partido) {
@@ -89,21 +89,38 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <div>Mi<span>Scout</span></div>
           <span style={{ fontSize: '0.7rem', color: '#ffffff', fontWeight: 400, letterSpacing: '0.5px' }}>v1.0</span>
         </div>
-        {partidoInfo && (
-          <div className="app-header__info">
-            <div>
-              {new Date(partidoInfo.fecha).toLocaleDateString('es-AR')}
-            </div>
-            <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-primary)' }}>
-              vs {partidoInfo.rival}
-            </div>
-          </div>
-        )}
-        {!partidoInfo && (
-          <div className="app-header__info">
+        <div className="app-header__info" style={{ textAlign: 'center' }}>
+          {partidoInfo ? (
+            <>
+              <div>{new Date(partidoInfo.fecha).toLocaleDateString('es-AR')}</div>
+              <div style={{ fontWeight: 700, fontSize: '0.8rem', color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {partidoInfo.visitante} vs {partidoInfo.local}
+              </div>
+            </>
+          ) : (
             <div style={{ fontStyle: 'italic' }}>Sin partido activo</div>
-          </div>
-        )}
+          )}
+        </div>
+        <a 
+          href="/guia_usuario.md" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          title="Guía de Usuario"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 24,
+            height: 24,
+            color: 'var(--text-secondary)',
+            textDecoration: 'none',
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+          </svg>
+        </a>
       </header>
 
       {/* Contenido principal */}

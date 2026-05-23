@@ -61,12 +61,14 @@ export interface Bateador {
   esAbridor: boolean;          // true si inició el partido, false si es sustituto
   reemplazadoPorId?: string;   // ID del bateador que lo reemplazó
   reemplazadoAInning?: number;
+  rol?: 'visitante' | 'local'; // Equipo al que pertenece
 }
 
 export interface Partido {
   id: string;
   fecha: string;         // ISO date string
-  rival: string;
+  visitante: string;
+  local: string;
   descripcion: string;
   innings: number;       // Innings jugados
   creadoEn: string;
@@ -90,9 +92,13 @@ export interface EstadisticasBateador {
 // Estado global del partido en curso
 export interface EstadoPartido {
   partido: Partido | null;
-  lineup: Bateador[];
+  lineupVisitante: Bateador[];
+  lineupLocal: Bateador[];
   turnosAlBate: TurnoAlBate[];
-  bateadorActualIndex: number;  // Índice en el lineup
+  indiceVisitante: number;  // Índice en el lineup visitante
+  indiceLocal: number;      // Índice en el lineup local
+  mitadInning: 'alta' | 'baja';
   inningActual: number;
-  vueltasAlOrden: number;       // Cuántas veces pasó por el lineup completo
+  vueltasAlOrdenVisitante: number;
+  vueltasAlOrdenLocal: number;
 }

@@ -6,11 +6,15 @@ const STORAGE_KEY = 'mi_scout_estado';
 
 export const estadoInicial: EstadoPartido = {
   partido: null,
-  lineup: [],
+  lineupVisitante: [],
+  lineupLocal: [],
   turnosAlBate: [],
-  bateadorActualIndex: 0,
+  indiceVisitante: 0,
+  indiceLocal: 0,
+  mitadInning: 'alta',
   inningActual: 1,
-  vueltasAlOrden: 0,
+  vueltasAlOrdenVisitante: 0,
+  vueltasAlOrdenLocal: 0,
 };
 
 export function cargarEstado(): EstadoPartido {

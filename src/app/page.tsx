@@ -10,21 +10,23 @@ import type { Bateador, Partido } from '@/lib/types';
 // ─── Modal: Nuevo Partido ─────────────────────────────────────────────────────
 function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
   const { dispatch } = useScout();
-  const [rival, setRival] = useState('');
+  const [visitante, setVisitante] = useState('');
+  const [local, setLocal] = useState('');
   const [desc, setDesc] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
 
   const iniciar = () => {
-    if (!rival.trim()) return;
+    if (!visitante.trim() || !local.trim()) return;
     const partido: Partido = {
       id: generarId(),
       fecha,
-      rival: rival.trim().toUpperCase(),
-      descripcion: desc.trim() || `vs ${rival.trim().toUpperCase()}`,
+      visitante: visitante.trim().toUpperCase(),
+      local: local.trim().toUpperCase(),
+      descripcion: desc.trim() || `${visitante.trim().toUpperCase()} vs ${local.trim().toUpperCase()}`,
       innings: 7,
       creadoEn: new Date().toISOString(),
     };
-    dispatch({ type: 'INICIAR_PARTIDO', payload: { partido, lineup: [] } });
+    dispatch({ type: 'INICIAR_PARTIDO', payload: { partido, lineupVisitante: [], lineupLocal: [] } });
     onClose();
   };
 
@@ -36,13 +38,23 @@ function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="form-group">
-            <label className="label">Equipo rival *</label>
+            <label className="label">Equipo Visitante *</label>
             <input
               className="input"
               placeholder="Ej: AUS"
-              value={rival}
-              onChange={(e) => setRival(e.target.value)}
+              value={visitante}
+              onChange={(e) => setVisitante(e.target.value)}
               autoFocus
+              maxLength={20}
+            />
+          </div>
+          <div className="form-group">
+            <label className="label">Equipo Local *</label>
+            <input
+              className="input"
+              placeholder="Ej: ARG"
+              value={local}
+              onChange={(e) => setLocal(e.target.value)}
               maxLength={20}
             />
           </div>
@@ -178,7 +190,7 @@ function ModalSustitucion({
   inning: number;
   onClose: () => void;
 }) {
-  const { dispatch } = useScout();
+  const { dispatch, estado } = useScout();
   const [form, setForm] = useState<FormBateador>(FORM_VACIO);
   const set = (k: keyof FormBateador) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
@@ -189,6 +201,7 @@ function ModalSustitucion({
       type: 'SUSTITUIR_BATEADOR',
       payload: {
         salienteId: saliente.id,
+        rol: saliente.rol as 'visitante' | 'local',
         entrante: {
           numero: form.numero.trim(),
           apellido: form.apellido.trim().toUpperCase(),
@@ -260,6 +273,109 @@ const CrosshairIcon = ({ color = 'currentColor' }: { color?: string }) => (
   </svg>
 );
 
+// ─── Modal: Carga Masiva ────────────────────────────────────────────────────────
+function ModalCargaMasiva({
+  equipo,
+  onGuardar,
+  onClose,
+}: {
+  equipo: string;
+  onGuardar: (bateadores: Array<Omit<Bateador, 'id'>>) => void;
+  onClose: () => void;
+}) {
+  const [filas, setFilas] = useState<FormBateador[]>(
+    Array(9).fill(null).map(() => ({ ...FORM_VACIO }))
+  );
+
+  const setRow = (index: number, key: keyof FormBateador, val: string) => {
+    const n = [...filas];
+    n[index] = { ...n[index], [key]: val };
+    setFilas(n);
+  };
+
+  const agregarFila = () => {
+    setFilas([...filas, { ...FORM_VACIO }]);
+  };
+
+  const guardar = () => {
+    // Filtrar filas válidas (mínimo apellido)
+    const validas = filas.filter(f => f.apellido.trim());
+    if (validas.length === 0) return;
+
+    const bateadores = validas.map((f, i) => ({
+      numero: f.numero.trim(),
+      apellido: f.apellido.trim().toUpperCase(),
+      nombre: f.nombre.trim().toUpperCase(),
+      equipo,
+      ladoBateo: f.ladoBateo,
+      orden: i + 1,
+      activo: true,
+      esAbridor: true,
+    }));
+    
+    onGuardar(bateadores);
+    onClose();
+  };
+
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="bottom-sheet" style={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        <h2 className="sheet-title">Carga Rápida (Line-Up)</h2>
+        <p className="sheet-subtitle">Ingresa en orden a los bateadores</p>
+        
+        <div style={{ flex: 1, overflowY: 'auto', margin: '12px -24px', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Cabecera miniatura */}
+          <div style={{ display: 'flex', gap: 8, padding: '0 4px' }}>
+            <span className="text-xs text-secondary" style={{ width: 40 }}>#</span>
+            <span className="text-xs text-secondary" style={{ flex: 1 }}>APELLIDO</span>
+            <span className="text-xs text-secondary" style={{ width: 68, textAlign: 'center' }}>LADO</span>
+          </div>
+          
+          {filas.map((f, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span className="text-xs text-secondary" style={{ width: 14 }}>{i+1}.</span>
+              <input 
+                className="input" style={{ width: 40, padding: '8px 4px', textAlign: 'center', fontSize: '0.9rem' }} 
+                placeholder="7" value={f.numero} onChange={(e) => setRow(i, 'numero', e.target.value)} maxLength={3} inputMode="numeric" 
+              />
+              <input 
+                className="input" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }} 
+                placeholder="Apellido" value={f.apellido} onChange={(e) => setRow(i, 'apellido', e.target.value)} autoCapitalize="characters" 
+              />
+              {/* Lado selector rápido */}
+              <div style={{ display: 'flex', borderRadius: 'var(--radius-sm)', overflow: 'hidden', width: 68, border: '1px solid var(--border)' }}>
+                {(['D', 'Z', 'S'] as const).map(l => (
+                  <div
+                    key={l}
+                    onClick={() => setRow(i, 'ladoBateo', l)}
+                    style={{
+                      flex: 1, textAlign: 'center', padding: '6px 0', fontSize: '0.75rem', fontWeight: 700,
+                      background: f.ladoBateo === l ? 'var(--accent)' : 'transparent',
+                      color: f.ladoBateo === l ? '#000' : 'var(--text-secondary)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {l}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          
+          <button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={agregarFila}>
+            + Agregar fila
+          </button>
+        </div>
+        
+        <div style={{ paddingTop: 16 }}>
+          <button className="btn btn-primary btn-full" onClick={guardar}>Guardar Line-Up Completo</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Pantalla principal: LINE-UP ──────────────────────────────────────────────
 export default function LineupPage() {
   const { estado, dispatch, bateadorActual, bateadoresActivos } = useScout();
@@ -267,32 +383,45 @@ export default function LineupPage() {
 
   const [showNuevoPartido, setShowNuevoPartido] = useState(false);
   const [showAgregarBateador, setShowAgregarBateador] = useState(false);
+  const [showCargaMasiva, setShowCargaMasiva] = useState(false);
   const [showConfirmReset, setShowConfirmReset] = useState(false);
   const [editando, setEditando] = useState<Bateador | null>(null);
   const [sustituyendo, setSustituyendo] = useState<Bateador | null>(null);
+  const [activeTab, setActiveTab] = useState<'visitante' | 'local'>('visitante');
+
+  const equipoActual = activeTab === 'visitante' ? estado.partido?.visitante : estado.partido?.local;
+  const lineupActual = (activeTab === 'visitante' ? estado.lineupVisitante : estado.lineupLocal) || [];
 
   const agregarBateador = (d: FormBateador) => {
-    const ordenMaximo = Math.max(0, ...estado.lineup.map(b => b.orden));
+    const ordenMaximo = Math.max(0, ...lineupActual.map(b => b.orden));
     const orden = ordenMaximo + 1;
     dispatch({
       type: 'AGREGAR_BATEADOR',
-      payload: { ...d, equipo: estado.partido!.rival, orden, activo: true, esAbridor: true },
+      payload: { ...d, equipo: equipoActual || '', rol: activeTab, orden, activo: true, esAbridor: true },
+    });
+  };
+
+  const agregarBateadoresMasivo = (bateadores: Array<Omit<Bateador, 'id'>>) => {
+    const conRol = bateadores.map(b => ({ ...b, rol: activeTab }));
+    dispatch({
+      type: 'AGREGAR_BATEADORES_MASIVO',
+      payload: conRol,
     });
   };
 
   const editarBateador = (b: Bateador, d: FormBateador) => {
-    dispatch({ type: 'EDITAR_BATEADOR', payload: { id: b.id, datos: { ...d, equipo: b.equipo, ladoBateo: d.ladoBateo } } });
+    dispatch({ type: 'EDITAR_BATEADOR', payload: { id: b.id, rol: activeTab, datos: { ...d, equipo: b.equipo, ladoBateo: d.ladoBateo } } });
   };
 
   const seleccionarAlBate = (idx: number) => {
-    dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: idx });
+    dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: { rol: activeTab, indice: idx } });
   };
 
   const filas: Array<{ bateador: Bateador; idxActivo?: number; esActual: boolean }> = [];
-  const activos = estado.lineup.filter((b) => b.activo);
-  const ordenMaximo = Math.max(0, ...estado.lineup.map(b => b.orden));
+  const activos = lineupActual.filter((b) => b.activo);
+  const ordenMaximo = Math.max(0, ...lineupActual.map(b => b.orden));
 
-  for (const b of estado.lineup) {
+  for (const b of lineupActual) {
     const idxActivo = activos.indexOf(b);
     filas.push({ bateador: b, idxActivo: idxActivo >= 0 ? idxActivo : undefined, esActual: bateadorActual?.id === b.id });
   }
@@ -328,11 +457,31 @@ export default function LineupPage() {
       {estado.partido && (
         <>
           {/* Info adicional del evento */}
-          {estado.partido.descripcion && estado.partido.descripcion !== `vs ${estado.partido.rival}` && (
+          {estado.partido.descripcion && (
             <div style={{ padding: '12px 16px 4px' }}>
               <p className="text-sm text-secondary" style={{ fontWeight: 600 }}>{estado.partido.descripcion}</p>
             </div>
           )}
+
+          {/* Tabs Visitante / Local */}
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginTop: 8 }}>
+            <button
+              className={`btn ${activeTab === 'visitante' ? '' : 'btn-ghost'}`}
+              style={{ flex: 1, borderRadius: 0, borderBottom: activeTab === 'visitante' ? '2px solid var(--accent)' : '2px solid transparent' }}
+              onClick={() => setActiveTab('visitante')}
+            >
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Visitante</div>
+              <div style={{ fontWeight: 800 }}>{estado.partido.visitante}</div>
+            </button>
+            <button
+              className={`btn ${activeTab === 'local' ? '' : 'btn-ghost'}`}
+              style={{ flex: 1, borderRadius: 0, borderBottom: activeTab === 'local' ? '2px solid var(--accent)' : '2px solid transparent' }}
+              onClick={() => setActiveTab('local')}
+            >
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Local</div>
+              <div style={{ fontWeight: 800 }}>{estado.partido.local}</div>
+            </button>
+          </div>
 
           {/* Cabecera de tabla */}
           <div style={{
@@ -355,7 +504,7 @@ export default function LineupPage() {
           )}
 
           {filas.map(({ bateador: b, idxActivo, esActual }) => {
-            const sustituido = estado.lineup.find((x) => x.id === b.reemplazadoPorId);
+            const sustituido = lineupActual.find((x) => x.id === b.reemplazadoPorId);
             return (
               <div key={b.id}>
                 <div
@@ -407,9 +556,14 @@ export default function LineupPage() {
 
           {/* Acciones */}
           <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {ordenMaximo < 10 && (
-              <button className="btn btn-primary btn-full" onClick={() => setShowAgregarBateador(true)}>
-                Completar line-up
+            {ordenMaximo === 0 && (
+              <button className="btn btn-primary btn-full" onClick={() => setShowCargaMasiva(true)}>
+                Carga rápida (Line-Up Completo)
+              </button>
+            )}
+            {ordenMaximo < 15 && (
+              <button className={`btn ${ordenMaximo === 0 ? 'btn-ghost' : 'btn-primary'} btn-full`} onClick={() => setShowAgregarBateador(true)}>
+                Agregar 1 jugador
               </button>
             )}
             {bateadorActual && (
@@ -432,6 +586,13 @@ export default function LineupPage() {
           subtitulo={`Orden al bate: ${ordenMaximo + 1}`}
           onGuardar={agregarBateador}
           onClose={() => setShowAgregarBateador(false)}
+        />
+      )}
+      {showCargaMasiva && estado.partido && (
+        <ModalCargaMasiva
+          equipo={equipoActual || ''}
+          onGuardar={agregarBateadoresMasivo}
+          onClose={() => setShowCargaMasiva(false)}
         />
       )}
       {editando && (

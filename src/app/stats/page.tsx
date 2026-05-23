@@ -25,8 +25,8 @@ function calcHeatMap(bateadorId: string, turnos: import('@/lib/types').TurnoAlBa
 
 export default function StatsPage() {
   const { estado } = useScout();
-  const activos = estado.lineup.filter((b) => b.activo);
-  const todos = estado.lineup;
+  const todos = [...(estado.lineupVisitante || []), ...(estado.lineupLocal || [])];
+  const activos = todos.filter((b) => b.activo);
 
   const [selId, setSelId] = useState<string | null>(null);
 
