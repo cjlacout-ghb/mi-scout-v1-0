@@ -5,11 +5,12 @@ import { useScout } from '@/context/ScoutContext';
 import ZonaStrikeComponent from '@/components/ZonaStrike';
 import ModalPitch from '@/components/ModalPitch';
 import ModalConfirm from '@/components/ModalConfirm';
-import type { ZonaStrike, TurnoAlBate } from '@/lib/types';
+import type { ZonaStrike, TurnoAlBate, Coordenadas } from '@/lib/types';
 
 export default function TrackingPage() {
   const { estado, dispatch, bateadorActual, bateadoresActivos } = useScout();
   const [zonaSeleccionada, setZonaSeleccionada] = useState<ZonaStrike | null>(null);
+  const [coordenadasSeleccionadas, setCoordenadasSeleccionadas] = useState<Coordenadas | null>(null);
   const [turnoEditando, setTurnoEditando] = useState<TurnoAlBate | null>(null);
   const [turnoAEliminar, setTurnoAEliminar] = useState<string | null>(null);
   const [esperandoConfirmacion, setEsperandoConfirmacion] = useState(false);
@@ -40,19 +41,20 @@ export default function TrackingPage() {
     ? estado.turnosAlBate.filter((t) => t.bateadorId === bateadorActual.id)
     : [];
 
-  // Marcadores para mostrar en la zona (solo el último turno)
-  const marcadores = turnosBateador.slice(-1).flatMap((t) => {
+  // Marcadores para mostrar en la zona (todos los turnos del bateador en el partido)
+  const marcadores = turnosBateador.flatMap((t) => {
     const tipo = (
       t.resultado === 'HIT'   ? 'contact' :
       t.resultado === 'OUT'   ? 'contact' :
       t.resultado === 'BB/HP' ? 'ball'    : 'strike'
     ) as 'strike' | 'ball' | 'contact';
-    return [{ zona: t.zona, tipo }];
+    return [{ zona: t.zona, tipo, coordenadas: t.coordenadas, resultado: t.resultado }];
   });
 
-  const handleZonaClick = (zona: ZonaStrike) => {
+  const handleZonaClick = (zona: ZonaStrike, coordenadas?: Coordenadas) => {
     if (esperandoConfirmacion) return;
     setZonaSeleccionada(zona);
+    setCoordenadasSeleccionadas(coordenadas || null);
   };
 
   const handleConfirmarPitch = (datos: {
@@ -71,6 +73,7 @@ export default function TrackingPage() {
           id: turnoEditando.id,
           datos: {
             zona: datos.zona,
+            coordenadas: coordenadasSeleccionadas || turnoEditando.coordenadas,
             tipoPitch: datos.tipoPitch,
             resultado: datos.resultado,
             detalleOut: datos.detalleOut,
@@ -87,6 +90,7 @@ export default function TrackingPage() {
           bateadorId: bateadorActual.id,
           inning: estado.inningActual,
           zona: datos.zona,
+          coordenadas: coordenadasSeleccionadas || undefined,
           tipoPitch: datos.tipoPitch,
           resultado: datos.resultado,
           detalleOut: datos.detalleOut,
@@ -97,6 +101,7 @@ export default function TrackingPage() {
     }
 
     setZonaSeleccionada(null);
+    setCoordenadasSeleccionadas(null);
   };
 
   const cambiarInning = (delta: number) => {
@@ -138,6 +143,9 @@ export default function TrackingPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 800, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {bateadorActual?.apellido ?? '—'}{bateadorActual?.nombre ? `, ${bateadorActual.nombre}` : ''}
+              <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, fontSize: '0.65rem', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-secondary)', verticalAlign: 'middle', position: 'relative', top: '-1px' }}>
+                {bateadorActual?.ladoBateo || 'D'}
+              </span>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 3, alignItems: 'center' }}>
               <span className="badge badge-accent">{bateadorActual?.equipo}</span>
@@ -290,8 +298,8 @@ export default function TrackingPage() {
                 marginRight: 4
               }}>
                 {t.resultado}
-                {t.detalleHit && ` (${t.detalleHit.tipo})`}
-                {t.detalleOut && ` (${t.detalleOut.tipo})`}
+                {t.detalleHit && ` (${t.detalleHit.tipo}) ${t.detalleHit.ubicacion}`}
+                {t.detalleOut && ` (${t.detalleOut.tipo}) ${t.detalleOut.defensor}`}
               </span>
               <div style={{ display: 'flex', gap: 8, opacity: 0.7 }}>
                 <button
@@ -323,6 +331,7 @@ export default function TrackingPage() {
           onConfirmar={handleConfirmarPitch}
           onCancelar={() => {
             setZonaSeleccionada(null);
+            setCoordenadasSeleccionadas(null);
             setTurnoEditando(null);
           }}
         />

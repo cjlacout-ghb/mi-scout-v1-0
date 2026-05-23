@@ -94,9 +94,9 @@ function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
 
 // ─── Modal: Agregar / Editar Bateador ─────────────────────────────────────────
 interface FormBateador {
-  numero: string; apellido: string; nombre: string; equipo: string;
+  numero: string; apellido: string; nombre: string; equipo: string; ladoBateo: 'D' | 'Z' | 'S';
 }
-const FORM_VACIO: FormBateador = { numero: '', apellido: '', nombre: '', equipo: '' };
+const FORM_VACIO: FormBateador = { numero: '', apellido: '', nombre: '', equipo: '', ladoBateo: 'D' };
 
 function ModalBateador({
   inicial,
@@ -122,6 +122,7 @@ function ModalBateador({
       apellido: form.apellido.trim().toUpperCase(),
       nombre: form.nombre.trim().toUpperCase(),
       equipo: form.equipo.trim().toUpperCase(),
+      ladoBateo: form.ladoBateo,
     });
     onClose();
   };
@@ -144,6 +145,21 @@ function ModalBateador({
           <div className="form-group">
             <label className="label">Nombre</label>
             <input className="input" placeholder="LOCHLAN" value={form.nombre} onChange={set('nombre')} maxLength={40} autoCapitalize="characters" />
+          </div>
+          <div className="form-group">
+            <label className="label">Lado de bateo</label>
+            <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+              {(['D', 'Z', 'S'] as const).map(l => (
+                <button
+                  key={l}
+                  className={`btn ${form.ladoBateo === l ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ flex: 1, borderRadius: 0, border: 'none', borderRight: l !== 'S' ? '1px solid var(--border)' : 'none', padding: '10px 0' }}
+                  onClick={() => setForm({ ...form, ladoBateo: l })}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
           </div>
           <button className="btn btn-primary btn-full" onClick={guardar}>Guardar</button>
         </div>
@@ -178,6 +194,7 @@ function ModalSustitucion({
           apellido: form.apellido.trim().toUpperCase(),
           nombre: form.nombre.trim().toUpperCase(),
           equipo: saliente.equipo,
+          ladoBateo: form.ladoBateo,
           activo: true,
           esAbridor: false,
         },
@@ -208,6 +225,21 @@ function ModalSustitucion({
           <div className="form-group">
             <label className="label">Nombre</label>
             <input className="input" placeholder="NOMBRE" value={form.nombre} onChange={set('nombre')} maxLength={40} autoCapitalize="characters" />
+          </div>
+          <div className="form-group">
+            <label className="label">Lado de bateo</label>
+            <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+              {(['D', 'Z', 'S'] as const).map(l => (
+                <button
+                  key={l}
+                  className={`btn ${form.ladoBateo === l ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ flex: 1, borderRadius: 0, border: 'none', borderRight: l !== 'S' ? '1px solid var(--border)' : 'none', padding: '10px 0' }}
+                  onClick={() => setForm({ ...form, ladoBateo: l })}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
           </div>
           <button className="btn btn-primary btn-full" onClick={confirmar}>Confirmar sustitución</button>
         </div>
@@ -249,7 +281,7 @@ export default function LineupPage() {
   };
 
   const editarBateador = (b: Bateador, d: FormBateador) => {
-    dispatch({ type: 'EDITAR_BATEADOR', payload: { id: b.id, datos: { ...d, equipo: b.equipo } } });
+    dispatch({ type: 'EDITAR_BATEADOR', payload: { id: b.id, datos: { ...d, equipo: b.equipo, ladoBateo: d.ladoBateo } } });
   };
 
   const seleccionarAlBate = (idx: number) => {
@@ -312,6 +344,7 @@ export default function LineupPage() {
             <span className="text-xs text-secondary" style={{ width: 44, textAlign: 'center' }}>NUM</span>
             <span className="text-xs text-secondary" style={{ flex: 1, paddingLeft: 8 }}>APELLIDO Y NOMBRE</span>
             <span className="text-xs text-secondary" style={{ width: 36, textAlign: 'right' }}>TEAM</span>
+            <span style={{ width: 32 }}></span>
           </div>
 
           {/* Filas del lineup */}
@@ -342,8 +375,24 @@ export default function LineupPage() {
                   <div className="lineup-numero">{b.numero}</div>
                   <div className="lineup-nombre">
                     {b.apellido}{b.nombre ? `, ${b.nombre}` : ''}
+                    <span style={{ marginLeft: 6, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 22, height: 22, fontSize: '0.65rem', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-secondary)' }}>
+                      {b.ladoBateo || 'D'}
+                    </span>
                   </div>
                   <span className="lineup-equipo">{b.equipo}</span>
+                  <button
+                    className="btn btn-ghost"
+                    style={{ padding: 6, border: 'none', marginLeft: 4, color: 'var(--text-secondary)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditando(b);
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
                 </div>
 
                 {/* Nota de sustitución */}
@@ -389,7 +438,7 @@ export default function LineupPage() {
         <ModalBateador
           titulo="Editar bateador"
           subtitulo={`Orden al bate: ${editando.orden}`}
-          inicial={{ numero: editando.numero, apellido: editando.apellido, nombre: editando.nombre, equipo: editando.equipo }}
+          inicial={{ numero: editando.numero, apellido: editando.apellido, nombre: editando.nombre, equipo: editando.equipo, ladoBateo: editando.ladoBateo || 'D' }}
           onGuardar={(d) => editarBateador(editando, d)}
           onClose={() => setEditando(null)}
         />

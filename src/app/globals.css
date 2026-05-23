@@ -604,7 +604,7 @@ body {
   position: absolute;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  z-index: 5;
+  z-index: 0;
   transition: background 0.15s;
   display: flex;
   align-items: center;
@@ -616,10 +616,10 @@ body {
 .zona-esquina:active { background: rgba(245, 166, 35, 0.25); }
 
 /* Cada esquina: 20% x 20% del total */
-.zona-esquina.es7 { top: 0;   left: 0;  width: 20%; height: 20%; }
-.zona-esquina.es8 { top: 0;   right: 0; width: 20%; height: 20%; }
-.zona-esquina.es5 { bottom: 0; left: 0; width: 20%; height: 20%; }
-.zona-esquina.es6 { bottom: 0; right: 0;width: 20%; height: 20%; }
+.zona-esquina.es7 { top: 0;    left: 0;   width: 50%; height: 50%; }
+.zona-esquina.es8 { top: 0;    right: 0;  width: 50%; height: 50%; }
+.zona-esquina.es5 { bottom: 0; left: 0;   width: 50%; height: 50%; }
+.zona-esquina.es6 { bottom: 0; right: 0;  width: 50%; height: 50%; }
 
 /* Marcadores de pitch sobre la zona */
 .pitch-marker {
@@ -629,13 +629,39 @@ body {
   border-radius: 50%;
   transform: translate(-50%, -50%);
   border: 1.5px solid rgba(255,255,255,0.4);
-  pointer-events: none;
+  pointer-events: auto; /* Para permitir el hover */
   z-index: 10;
+  cursor: pointer;
 }
 
 .pitch-marker.ball    { background: var(--warning); }
 .pitch-marker.strike  { background: var(--danger); }
 .pitch-marker.contact { background: var(--success); }
+
+/* Tooltip de los marcadores */
+.pitch-tooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.8);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+  z-index: 20;
+}
+
+.pitch-marker:hover .pitch-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
 
 /* ─── Lineup Table ───────────────────────────────────────────────────────────── */
 .lineup-table {

@@ -31,11 +31,17 @@ export interface DetalleHit {
   calidad: CalidadContacto;
 }
 
+export interface Coordenadas {
+  x: number; // 0.0 a 1.0 (porcentaje de ancho)
+  y: number; // 0.0 a 1.0 (porcentaje de alto)
+}
+
 export interface TurnoAlBate {
   id: string;
   bateadorId: string;  // ID del bateador en el lineup
   inning: number;
   zona: ZonaStrike;
+  coordenadas?: Coordenadas; // Coordenadas exactas del lanzamiento
   tipoPitch: TipoPitch;
   resultado: ResultadoAtBat;
   detalleOut?: DetalleOut;
@@ -50,6 +56,7 @@ export interface Bateador {
   apellido: string;
   nombre: string;
   equipo: string;
+  ladoBateo: 'D' | 'Z' | 'S'; // Derecho, Zurdo, Switch
   activo: boolean;
   esAbridor: boolean;          // true si inició el partido, false si es sustituto
   reemplazadoPorId?: string;   // ID del bateador que lo reemplazó

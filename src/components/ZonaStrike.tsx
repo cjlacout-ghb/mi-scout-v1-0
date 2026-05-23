@@ -1,11 +1,11 @@
 'use client';
 
-import type { ZonaStrike } from '@/lib/types';
+import type { ZonaStrike, Coordenadas } from '@/lib/types';
 
 interface Props {
-  onZonaClick: (zona: ZonaStrike) => void;
+  onZonaClick: (zona: ZonaStrike, coordenadas?: Coordenadas) => void;
   /** Marcadores a mostrar sobre la zona (turnos del bateador actual) */
-  marcadores?: { zona: ZonaStrike; tipo: 'ball' | 'strike' | 'contact' }[];
+  marcadores?: { zona: ZonaStrike; tipo: 'ball' | 'strike' | 'contact'; coordenadas?: Coordenadas; resultado?: string }[];
   /** Modo heat map: overlay de color por zona */
   heatMap?: Partial<Record<ZonaStrike, number>>;  // 0-1 intensidad
 }
@@ -58,6 +58,18 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
     }
   }
 
+  const handleClick = (e: React.MouseEvent, zona: ZonaStrike) => {
+    const container = e.currentTarget.closest('.zona-outer');
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+      onZonaClick(zona, { x, y });
+    } else {
+      onZonaClick(zona);
+    }
+  };
+
   return (
     <div className="zona-container zona-strike">
       <div
@@ -75,12 +87,20 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
           <div
             key={z}
             className={`zona-esquina es${z}`}
-            onClick={() => onZonaClick(z)}
+            onClick={(e) => handleClick(e, z)}
             style={hmColores[z] ? { background: hmColores[z] } : undefined}
             role="button"
             aria-label={`Zona ${z}`}
           />
         ))}
+
+        {/* ── Líneas divisorias extendidas al borde exterior ── */}
+        <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2 }}>
+          {/* Línea vertical central */}
+          <div style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', width: '0.5px', background: 'var(--border)' }} />
+          {/* Línea horizontal central */}
+          <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: '0.5px', background: 'var(--border)' }} />
+        </div>
 
         {/* ── Cuadrado interior con los 4 cuadrantes ── */}
         <div className="zona-inner">
@@ -89,7 +109,7 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
             <div
               key={z}
               className="zona-cuadrante"
-              onClick={() => onZonaClick(z)}
+              onClick={(e) => handleClick(e, z)}
               style={hmColores[z] ? { background: hmColores[z] } : undefined}
               role="button"
               aria-label={`Zona ${z}`}
@@ -101,18 +121,46 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
 
         {/* ── Marcadores de pitch ── */}
         {marcadores.map((m, i) => {
-          const pos = ZONA_OFFSET[m.zona];
-          // Pequeño offset para evitar superposición si hay varios en la misma zona
-          const jitter = i * 4;
+          let topStr, leftStr;
+          
+          if (m.coordenadas) {
+            // Coordenadas exactas proporcionadas
+            topStr = `${(m.coordenadas.y * 100).toFixed(2)}%`;
+            leftStr = `${(m.coordenadas.x * 100).toFixed(2)}%`;
+          } else {
+            // Fallback para turnos viejos sin coordenadas (usa offset estático)
+            const pos = ZONA_OFFSET[m.zona] || { top: '50%', left: '50%' };
+            const jitter = i * 4; // Solo aplicamos jitter a los viejos
+            topStr = `calc(${pos.top} + ${jitter % 8}px)`;
+            leftStr = `calc(${pos.left} + ${(jitter * 1.5) % 10}px)`;
+          }
+
+          let colorResultado = 'var(--text-primary)';
+          if (m.resultado) {
+            if (m.resultado === 'HIT') colorResultado = 'var(--success)';
+            else if (m.resultado === 'OUT' || m.resultado.startsWith('K')) colorResultado = 'var(--danger)';
+            else if (m.resultado === 'BB/HP') colorResultado = 'var(--info)';
+          }
+
           return (
             <div
               key={i}
-              className={`pitch-marker ${m.tipo}`}
+              className={`pitch-marker ${m.tipo} group`}
               style={{
-                top: `calc(${pos.top} + ${jitter % 8}px)`,
-                left: `calc(${pos.left} + ${(jitter * 1.5) % 10}px)`,
+                top: topStr,
+                left: leftStr,
+                transform: 'translate(-50%, -50%)', // Centramos el marcador en la coordenada exacta
               }}
-            />
+            >
+              {m.resultado && (
+                <div 
+                  className="pitch-tooltip"
+                  style={{ color: colorResultado }}
+                >
+                  {m.resultado}
+                </div>
+              )}
+            </div>
           );
         })}
       </div>
