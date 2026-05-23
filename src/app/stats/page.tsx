@@ -68,7 +68,7 @@ export default function StatsPage() {
         >
           {todos.map((b) => (
             <option key={b.id} value={b.id}>
-              #{b.numero} {b.apellido}, {b.nombre} {!b.activo ? '(sale)' : ''}
+              #{b.numero} {b.apellido}{b.nombre ? `, ${b.nombre}` : ''} {!b.activo ? '(sale)' : ''}
             </option>
           ))}
         </select>

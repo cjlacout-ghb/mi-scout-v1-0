@@ -48,7 +48,7 @@ export default function TrackingPage() {
       t.resultado === 'OUT'   ? 'contact' :
       t.resultado === 'BB/HP' ? 'ball'    : 'strike'
     ) as 'strike' | 'ball' | 'contact';
-    return [{ zona: t.zona, tipo, coordenadas: t.coordenadas, resultado: t.resultado }];
+    return [{ zona: t.zona, tipo, coordenadas: t.coordenadas, resultado: t.resultado, tipoPitch: t.tipoPitch }];
   });
 
   const handleZonaClick = (zona: ZonaStrike, coordenadas?: Coordenadas) => {
@@ -159,13 +159,13 @@ export default function TrackingPage() {
 
           {/* Inning control */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <button onClick={retrocederMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1rem' }}>◀</button>
+            <button onClick={retrocederMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1.5rem', lineHeight: 1 }}>−</button>
             <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Inn</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              {estado.mitadInning === 'alta' ? <span style={{ color: 'var(--text-secondary)' }}>▲</span> : <span style={{ color: 'var(--text-secondary)' }}>▼</span>}
-              {estado.inningActual}
+            <div style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 4 }}>
+              {estado.mitadInning === 'alta' ? <span style={{ color: 'var(--text-primary)' }}>▲</span> : <span style={{ color: 'var(--text-primary)' }}>▼</span>}
+              <span style={{ color: 'var(--accent)' }}>{estado.inningActual}</span>
             </div>
-            <button onClick={avanzarMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1rem' }}>▶</button>
+            <button onClick={avanzarMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1.5rem', lineHeight: 1 }}>+</button>
           </div>
         </div>
 
@@ -214,7 +214,7 @@ export default function TrackingPage() {
           textTransform: 'uppercase',
           marginBottom: 4,
         }}>
-          {esperandoConfirmacion ? 'Confirmar resultado' : turnoEditando ? 'Reubicá el lanzamiento' : 'Tocá la zona del lanzamiento'}
+          {esperandoConfirmacion ? 'Confirmar resultado' : turnoEditando ? 'Reubicá el lanzamiento' : 'MARCA EL LANZAMIENTO EN LA ZONA'}
         </p>
         <ZonaStrikeComponent onZonaClick={handleZonaClick} marcadores={marcadores} />
         {esperandoConfirmacion && (

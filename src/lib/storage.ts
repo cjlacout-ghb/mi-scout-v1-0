@@ -117,12 +117,8 @@ const NOMBRE_ZONA: Record<number, string> = {
   8: 'Esquina superior derecha',
 };
 
-export function generarReporteMD(
-  bateador: Bateador,
-  stats: EstadisticasBateador,
-  turnos: TurnoAlBate[],
-  partido: Partido
-): string {
+export function generarReporteMD(bateador: import('./types').Bateador, stats: EstadisticasBateador, turnos: import('./types').TurnoAlBate[], partido: import('./types').Partido): string {
+  let md = `# Reporte de Scouting — ${bateador.apellido}${bateador.nombre ? `, ${bateador.nombre}` : ''} (#${bateador.numero})\n\n`;
   const avg = stats.promedio.toFixed(3).replace('0.', '.');
   const misTurnos = turnos.filter((t) => t.bateadorId === bateador.id);
 
@@ -134,8 +130,6 @@ export function generarReporteMD(
   const zonasFrias = (Object.entries(stats.porZona) as [string, { hits: number; pitches: number }][])
     .filter(([, v]) => v.pitches > 0 && v.hits === 0)
     .sort((a, b) => b[1].pitches - a[1].pitches);
-
-  let md = `# Reporte de Scouting — ${bateador.apellido}, ${bateador.nombre} (#${bateador.numero})\n\n`;
   md += `**Partido:** ${partido.descripcion}  \n`;
   md += `**Fecha:** ${new Date(partido.fecha).toLocaleDateString('es-AR')}  \n`;
   md += `**Equipo:** ${bateador.equipo}\n\n`;

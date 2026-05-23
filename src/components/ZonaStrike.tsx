@@ -5,7 +5,7 @@ import type { ZonaStrike, Coordenadas } from '@/lib/types';
 interface Props {
   onZonaClick: (zona: ZonaStrike, coordenadas?: Coordenadas) => void;
   /** Marcadores a mostrar sobre la zona (turnos del bateador actual) */
-  marcadores?: { zona: ZonaStrike; tipo: 'ball' | 'strike' | 'contact'; coordenadas?: Coordenadas; resultado?: string }[];
+  marcadores?: { zona: ZonaStrike; tipo: 'ball' | 'strike' | 'contact'; coordenadas?: Coordenadas; resultado?: string; tipoPitch?: string }[];
   /** Modo heat map: overlay de color por zona */
   heatMap?: Partial<Record<ZonaStrike, number>>;  // 0-1 intensidad
 }
@@ -150,6 +150,7 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
                 top: topStr,
                 left: leftStr,
                 transform: 'translate(-50%, -50%)', // Centramos el marcador en la coordenada exacta
+                ...(m.resultado && colorResultado !== 'var(--text-primary)' ? { background: colorResultado } : {})
               }}
             >
               {m.resultado && (
@@ -157,7 +158,7 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
                   className="pitch-tooltip"
                   style={{ color: colorResultado }}
                 >
-                  {m.resultado}
+                  {m.resultado}{m.tipoPitch ? `, ${m.tipoPitch.toLowerCase()}` : ''}
                 </div>
               )}
             </div>

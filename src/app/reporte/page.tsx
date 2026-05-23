@@ -57,7 +57,7 @@ export default function ReportePage() {
     for (const b of lineup) {
       const stats = calcularEstadisticas(b.id, estado.turnosAlBate);
       if (stats.turnosAlBate === 0) continue;
-      md += `## #${b.numero} ${b.apellido}, ${b.nombre}\n\n`;
+      md += `## #${b.numero} ${b.apellido}${b.nombre ? `, ${b.nombre}` : ''}\n\n`;
       const avg = stats.promedio.toFixed(3).replace('0.', '.');
       md += `AB: ${stats.turnosAlBate} | H: ${stats.hits} | AVG: ${avg} | KS: ${stats.strikeoutsSwinging} | KL: ${stats.strikeoutsLooking} | BB: ${stats.basesPorBolas}\n\n`;
       // Zonas calientes
@@ -107,7 +107,7 @@ export default function ReportePage() {
             <option value="">— Seleccioná un bateador —</option>
             {todos.map((b) => (
               <option key={b.id} value={b.id}>
-                #{b.numero} {b.apellido}, {b.nombre}
+                #{b.numero} {b.apellido}{b.nombre ? `, ${b.nombre}` : ''}
               </option>
             ))}
           </select>

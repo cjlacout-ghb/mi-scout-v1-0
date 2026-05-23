@@ -321,14 +321,15 @@ function ModalCargaMasiva({
     <div className="overlay" onClick={onClose}>
       <div className="bottom-sheet" style={{ maxHeight: '90vh', display: 'flex', flexDirection: 'column' }} onClick={(e) => e.stopPropagation()}>
         <div className="sheet-handle" />
-        <h2 className="sheet-title">Carga Rápida (Line-Up)</h2>
+        <h2 className="sheet-title">Line-up: {equipo.toUpperCase()}</h2>
         <p className="sheet-subtitle">Ingresa en orden a los bateadores</p>
         
         <div style={{ flex: 1, overflowY: 'auto', margin: '12px -24px', padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {/* Cabecera miniatura */}
-          <div style={{ display: 'flex', gap: 8, padding: '0 4px' }}>
-            <span className="text-xs text-secondary" style={{ width: 40 }}>#</span>
-            <span className="text-xs text-secondary" style={{ flex: 1 }}>APELLIDO</span>
+          <div style={{ display: 'flex', gap: 8, padding: '0 4px', paddingLeft: 22 }}>
+            <span className="text-xs text-secondary" style={{ width: 40, textAlign: 'center' }}>#</span>
+            <span className="text-xs text-secondary" style={{ flex: 1, paddingLeft: 8 }}>APELLIDO</span>
+            <span className="text-xs text-secondary" style={{ flex: 1, paddingLeft: 8 }}>NOMBRE</span>
             <span className="text-xs text-secondary" style={{ width: 68, textAlign: 'center' }}>LADO</span>
           </div>
           
@@ -343,8 +344,12 @@ function ModalCargaMasiva({
                 className="input" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }} 
                 placeholder="Apellido" value={f.apellido} onChange={(e) => setRow(i, 'apellido', e.target.value)} autoCapitalize="characters" 
               />
+              <input 
+                className="input" style={{ flex: 1, padding: '8px', fontSize: '0.9rem' }} 
+                placeholder="Nombre" value={f.nombre} onChange={(e) => setRow(i, 'nombre', e.target.value)} autoCapitalize="words" 
+              />
               {/* Lado selector rápido */}
-              <div style={{ display: 'flex', borderRadius: 'var(--radius-sm)', overflow: 'hidden', width: 68, border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', borderRadius: 'var(--radius-sm)', overflow: 'hidden', width: 68, border: '1px solid var(--border)', flexShrink: 0 }}>
                 {(['D', 'Z', 'S'] as const).map(l => (
                   <div
                     key={l}
