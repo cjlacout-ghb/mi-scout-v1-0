@@ -14,6 +14,7 @@ function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
   const [local, setLocal] = useState('');
   const [desc, setDesc] = useState('');
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  const [perspectiva, setPerspectiva] = useState<'catcher' | 'pitcher'>('catcher');
 
   const iniciar = () => {
     if (!visitante.trim() || !local.trim()) return;
@@ -26,7 +27,7 @@ function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
       innings: 7,
       creadoEn: new Date().toISOString(),
     };
-    dispatch({ type: 'INICIAR_PARTIDO', payload: { partido, lineupVisitante: [], lineupLocal: [] } });
+    dispatch({ type: 'INICIAR_PARTIDO', payload: { partido, lineupVisitante: [], lineupLocal: [], perspectivaZona: perspectiva } });
     onClose();
   };
 
@@ -95,8 +96,26 @@ function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
               />
             </div>
           </div>
+          <div className="form-group">
+            <label className="label">Vista de zona de strike</label>
+            <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: 8, lineHeight: 1.4 }}>
+              Desde qué perspectiva vas a marcar los lanzamientos
+            </p>
+            <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+              {(['catcher', 'pitcher'] as const).map(p => (
+                <button
+                  key={p}
+                  className={`btn ${perspectiva === p ? 'btn-primary' : 'btn-ghost'}`}
+                  style={{ flex: 1, borderRadius: 0, border: 'none', borderRight: p === 'catcher' ? '1px solid var(--border)' : 'none', padding: '10px 0', textTransform: 'capitalize' }}
+                  onClick={() => setPerspectiva(p)}
+                >
+                  {p === 'catcher' ? 'Catcher' : 'Pitcher'}
+                </button>
+              ))}
+            </div>
+          </div>
           <button className="btn btn-primary btn-lg btn-full" onClick={iniciar}>
-            ▶ Iniciar partido
+            Comenzar
           </button>
         </div>
       </div>

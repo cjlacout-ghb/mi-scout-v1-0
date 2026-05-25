@@ -89,7 +89,7 @@ export default function StatsPage() {
               { label: 'H',  value: stats.hits,  color: 'var(--success)' },
               { label: 'KS', value: stats.strikeoutsSwinging, color: 'var(--danger)' },
               { label: 'KL', value: stats.strikeoutsLooking,  color: 'var(--danger)' },
-              { label: 'BB', value: stats.basesPorBolas, color: 'var(--info)' },
+              { label: 'BB/HP', value: stats.basesPorBolas, color: 'var(--info)' },
               { label: 'OUT',value: stats.outs },
               { label: 'AVG',value: avg, color: 'var(--accent)' },
             ].map(({ label, value, color }) => (

@@ -59,7 +59,11 @@ export default function ReportePage() {
       if (stats.turnosAlBate === 0) continue;
       md += `## #${b.numero} ${b.apellido}${b.nombre ? `, ${b.nombre}` : ''}\n\n`;
       const avg = stats.promedio.toFixed(3).replace('0.', '.');
-      md += `AB: ${stats.turnosAlBate} | H: ${stats.hits} | AVG: ${avg} | KS: ${stats.strikeoutsSwinging} | KL: ${stats.strikeoutsLooking} | BB: ${stats.basesPorBolas}\n\n`;
+      const turnoList = estado.turnosAlBate.filter(t => t.bateadorId === b.id);
+      const asistencia = turnoList.filter(t => t.detalleOut?.tipo === 'asistencia').length;
+      const fly = turnoList.filter(t => t.detalleOut?.tipo === 'fly').length;
+      const afCount = asistencia + fly;
+      md += `AB: ${stats.turnosAlBate} | H: ${stats.hits} | AVG: ${avg} | KS: ${stats.strikeoutsSwinging} | KL: ${stats.strikeoutsLooking} | BB/HP: ${stats.basesPorBolas} | A/F: ${afCount}\n\n`;
       // Zonas calientes
       const calientes = ([1,2,3,4,5,6,7,8] as const)
         .filter((z) => stats.porZona[z].hits > 0)

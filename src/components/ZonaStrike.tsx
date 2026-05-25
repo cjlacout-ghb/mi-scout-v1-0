@@ -8,6 +8,10 @@ interface Props {
   marcadores?: { zona: ZonaStrike; tipo: 'ball' | 'strike' | 'contact'; coordenadas?: Coordenadas; resultado?: string; tipoPitch?: string }[];
   /** Modo heat map: overlay de color por zona */
   heatMap?: Partial<Record<ZonaStrike, number>>;  // 0-1 intensidad
+  /** Lado de bateo del bateador actual (D=Derecho, Z=Zurdo, S=Switch) */
+  ladoBateo?: 'D' | 'Z' | 'S';
+  /** Vista de la zona: catcher o pitcher */
+  perspectiva?: 'catcher' | 'pitcher';
 }
 
 // Mapeo de resultado → tipo de marcador
@@ -50,7 +54,7 @@ function heatColor(intensity: number): string {
   return `rgba(${r},${g},${b},0.65)`;
 }
 
-export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heatMap }: Props) {
+export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heatMap, ladoBateo, perspectiva = 'catcher' }: Props) {
   const hmColores: Partial<Record<ZonaStrike, string>> = {};
   if (heatMap) {
     for (const [z, v] of Object.entries(heatMap)) {
@@ -71,7 +75,27 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
   };
 
   return (
-    <div className="zona-container zona-strike">
+    <div className="zona-container zona-strike" style={{ position: 'relative' }}>
+      {perspectiva === 'catcher' && (
+        <>
+          {ladoBateo === 'Z' && (
+            <div style={{ position: 'absolute', top: 16, bottom: 16, right: 6, width: 8, background: '#FFB83D', borderRadius: 2 }} title="Bateador Zurdo" />
+          )}
+          {ladoBateo === 'D' && (
+            <div style={{ position: 'absolute', top: 16, bottom: 16, left: 6, width: 8, background: '#FFB83D', borderRadius: 2 }} title="Bateador Derecho" />
+          )}
+        </>
+      )}
+      {perspectiva === 'pitcher' && (
+        <>
+          {ladoBateo === 'Z' && (
+            <div style={{ position: 'absolute', top: 16, bottom: 16, left: 6, width: 8, background: '#FFB83D', borderRadius: 2 }} title="Bateador Zurdo (Pitcher view)" />
+          )}
+          {ladoBateo === 'D' && (
+            <div style={{ position: 'absolute', top: 16, bottom: 16, right: 6, width: 8, background: '#FFB83D', borderRadius: 2 }} title="Bateador Derecho (Pitcher view)" />
+          )}
+        </>
+      )}
       <div
         className="zona-outer"
         style={{ position: 'relative', background: 'var(--bg-elevated)' }}

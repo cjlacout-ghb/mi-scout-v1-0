@@ -69,6 +69,7 @@ const TIPOS_RESULTADO: { value: ResultadoAtBat; label: string; color: string; de
 
 const TIPOS_OUT: { value: TipoOut; label: string; desc: string }[] = [
   { value: 'asistencia', label: 'Asistencia', desc: 'Rodado / Tiro' },
+  { value: 'sac bunt',   label: 'Sac Bunt',   desc: 'Sacrificio' },
   { value: 'fly',        label: 'Fly',        desc: 'Elevado' },
 ];
 
@@ -78,6 +79,7 @@ const TIPOS_HIT: { value: TipoHit; label: string }[] = [
   { value: 'doble',   label: 'Doble' },
   { value: 'triple',  label: 'Triple' },
   { value: 'homerun', label: 'Home Run' },
+  { value: 'infield hit', label: 'Infield Hit' },
 ];
 
 export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
@@ -205,7 +207,7 @@ export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
       case 'numero_defensor': {
         return (
           <div className="number-grid">
-            {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as NumeroDefensor[]).map((n) => (
+            {([1, 2, 3, 4, 5, 6, 7, '7/8', 8, '8/9', 9, 10] as NumeroDefensor[]).map((n) => (
               <button key={n} className="number-btn" onClick={() => elegirNumero(n)}>
                 {n}
               </button>

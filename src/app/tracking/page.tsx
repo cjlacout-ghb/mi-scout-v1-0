@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useScout } from '@/context/ScoutContext';
 import ZonaStrikeComponent from '@/components/ZonaStrike';
 import ModalPitch from '@/components/ModalPitch';
@@ -14,6 +14,19 @@ export default function TrackingPage() {
   const [turnoEditando, setTurnoEditando] = useState<TurnoAlBate | null>(null);
   const [turnoAEliminar, setTurnoAEliminar] = useState<string | null>(null);
   const [esperandoConfirmacion, setEsperandoConfirmacion] = useState(false);
+  const [avisoInning, setAvisoInning] = useState(false);
+
+
+  const prevEquipoRef = useRef(equipoAlBate);
+  const prevInningRef = useRef(estado.inningActual);
+
+  useEffect(() => {
+    if (prevEquipoRef.current !== equipoAlBate || prevInningRef.current !== estado.inningActual) {
+      setAvisoInning(true);
+    }
+    prevEquipoRef.current = equipoAlBate;
+    prevInningRef.current = estado.inningActual;
+  }, [equipoAlBate, estado.inningActual]);
 
   // ─── Sin partido activo ────────────────────────────────────────────────────
   if (!estado.partido) {
@@ -105,12 +118,18 @@ export default function TrackingPage() {
   };
 
   const avanzarMitad = () => {
+    if (esperandoConfirmacion && !turnoEditando) {
+      dispatch({ type: 'AVANZAR_BATEADOR' });
+    }
     setEsperandoConfirmacion(false);
     setTurnoEditando(null);
     dispatch({ type: 'CAMBIAR_MITAD_INNING' });
   };
 
   const retrocederMitad = () => {
+    if (esperandoConfirmacion && !turnoEditando) {
+      dispatch({ type: 'AVANZAR_BATEADOR' });
+    }
     setEsperandoConfirmacion(false);
     setTurnoEditando(null);
     dispatch({ type: 'RETROCEDER_MITAD_INNING' });
@@ -121,6 +140,7 @@ export default function TrackingPage() {
   const hits = turnosBateador.filter((t) => t.resultado === 'HIT').length;
   const ks  = turnosBateador.filter((t) => t.resultado === 'KS' || t.resultado === 'KL').length;
   const bb  = turnosBateador.filter((t) => t.resultado === 'BB/HP').length;
+  const af  = turnosBateador.filter((t) => t.detalleOut?.tipo === 'asistencia' || t.detalleOut?.tipo === 'fly').length;
 
   const ultimoTurno = turnosBateador[turnosBateador.length - 1];
 
@@ -174,18 +194,22 @@ export default function TrackingPage() {
           <div style={{ display: 'flex', gap: 12, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>AB</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>{ab}</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-secondary)' }}>{ab}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '0.62rem', color: 'var(--success)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>H</div>
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--success)' }}>{hits}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '0.62rem', color: '#FFFFFF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>A/F</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#FFFFFF' }}>{af}</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '0.62rem', color: 'var(--danger)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>K</div>
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--danger)' }}>{ks}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.62rem', color: 'var(--info)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>BB</div>
+              <div style={{ fontSize: '0.62rem', color: 'var(--info)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>BB/HP</div>
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--info)' }}>{bb}</div>
             </div>
             {ultimoTurno && (
@@ -204,7 +228,39 @@ export default function TrackingPage() {
       </div>
 
       {/* ── Zona de strike ── */}
-      <div style={{ padding: '8px 0 4px' }}>
+      <div style={{ padding: '8px 0 4px', position: 'relative' }}>
+        {avisoInning && (
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 16,
+            right: 16,
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--accent)',
+            borderRadius: 8,
+            padding: '10px 12px',
+            zIndex: 10,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                Confirmá que se juega la {estado.mitadInning === 'alta' ? 'Alta' : 'Baja'} del {estado.inningActual}
+              </span>
+            </div>
+            <button
+              className="btn btn-primary"
+              style={{ padding: '6px 12px', fontSize: '0.75rem', flexShrink: 0 }}
+              onClick={() => setAvisoInning(false)}
+            >
+              OK
+            </button>
+          </div>
+        )}
+
         <p style={{
           textAlign: 'center',
           fontSize: '0.72rem',
@@ -216,7 +272,12 @@ export default function TrackingPage() {
         }}>
           {esperandoConfirmacion ? 'Confirmar resultado' : turnoEditando ? 'Reubicá el lanzamiento' : 'MARCA EL LANZAMIENTO EN LA ZONA'}
         </p>
-        <ZonaStrikeComponent onZonaClick={handleZonaClick} marcadores={marcadores} />
+        <ZonaStrikeComponent 
+          onZonaClick={handleZonaClick} 
+          marcadores={marcadores} 
+          ladoBateo={bateadorActual?.ladoBateo} 
+          perspectiva={estado.perspectivaZona} 
+        />
         {esperandoConfirmacion && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: 16 }}>
             <button
@@ -244,38 +305,63 @@ export default function TrackingPage() {
         )}
       </div>
 
-      {/* ── Mini lineup horizontal ── */}
       <div style={{ padding: '8px 16px' }}>
         <p className="text-xs text-secondary" style={{ marginBottom: 6 }}>Orden al bate</p>
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
-          {bateadoresActivos.map((b, i) => (
-            <button
-              key={b.id}
-              onClick={() => {
-                setEsperandoConfirmacion(false);
-                setTurnoEditando(null);
-                dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: { rol: equipoAlBate, indice: i } });
-              }}
-              style={{
-                flexShrink: 0,
-                padding: '6px 10px',
-                borderRadius: 8,
-              background: b.id === bateadorActual?.id ? 'var(--accent-dim)' : 'var(--bg-elevated)',
-              border: `1px solid ${b.id === bateadorActual?.id ? 'var(--accent)' : 'var(--border)'}`,
-              color: b.id === bateadorActual?.id ? 'var(--accent)' : 'var(--text-secondary)',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 1,
-              }}
-            >
-              <span style={{ fontSize: '0.6rem' }}>{b.orden}.</span>
-              <span>{b.numero}</span>
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, flex: 1 }}>
+            {bateadoresActivos.map((b, i) => (
+              <button
+                key={b.id}
+                onClick={() => {
+                  setEsperandoConfirmacion(false);
+                  setTurnoEditando(null);
+                  dispatch({ type: 'SET_BATEADOR_ACTUAL', payload: { rol: equipoAlBate, indice: i } });
+                }}
+                style={{
+                  flexShrink: 0,
+                  padding: '6px 10px',
+                  borderRadius: 8,
+                  background: b.id === bateadorActual?.id ? 'var(--accent-dim)' : 'var(--bg-elevated)',
+                  border: `1px solid ${b.id === bateadorActual?.id ? 'var(--accent)' : 'var(--border)'}`,
+                  color: b.id === bateadorActual?.id ? 'var(--accent)' : 'var(--text-secondary)',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1,
+                }}
+              >
+                <span style={{ fontSize: '0.6rem' }}>{b.orden}.</span>
+                <span>{b.numero}</span>
+              </button>
+            ))}
+          </div>
+          
+          <button
+            onClick={() => {
+              dispatch({ type: 'TOGGLE_EQUIPO_AL_BATE' });
+            }}
+            style={{
+              flexShrink: 0,
+              padding: '6px 10px',
+              minWidth: 40,
+              height: 40, // Height of the mini cards is roughly 40px
+              borderRadius: 8,
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-primary)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+            }}
+            title="Cambiar equipo al bate"
+          >
+            <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>⇄</span>
+          </button>
         </div>
       </div>
 
@@ -306,8 +392,8 @@ export default function TrackingPage() {
                 marginRight: 4
               }}>
                 {t.resultado}
-                {t.detalleHit && ` (${t.detalleHit.tipo}) ${t.detalleHit.ubicacion}`}
-                {t.detalleOut && ` (${t.detalleOut.tipo}) ${t.detalleOut.defensor}`}
+                {t.detalleHit && ` (${t.detalleHit.tipo}) ${t.detalleHit.ubicacion} ${t.detalleHit.calidad}`}
+                {t.detalleOut && ` (${t.detalleOut.tipo}) ${t.detalleOut.defensor} ${t.detalleOut.calidad}`}
               </span>
               <div style={{ display: 'flex', gap: 8, opacity: 0.7 }}>
                 <button

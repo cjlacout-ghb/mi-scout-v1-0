@@ -9,15 +9,15 @@ export type ResultadoAtBat =
   | 'OUT'
   | 'HIT';
 
-export type TipoOut = 'asistencia' | 'fly';
-export type TipoHit = 'bunt' | 'single' | 'doble' | 'triple' | 'homerun';
+export type TipoOut = 'asistencia' | 'sac bunt' | 'fly';
+export type TipoHit = 'bunt' | 'single' | 'doble' | 'triple' | 'homerun' | 'infield hit';
 export type CalidadContacto = 'soft' | 'hard';
 
 // Zona de strike: 1-4 internos, 5-8 perimetrales
 export type ZonaStrike = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 // Número de defensor o ubicación de bateo (1-10)
-export type NumeroDefensor = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+export type NumeroDefensor = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | '7/8' | '8/9';
 
 export interface DetalleOut {
   tipo: TipoOut;
@@ -101,4 +101,5 @@ export interface EstadoPartido {
   inningActual: number;
   vueltasAlOrdenVisitante: number;
   vueltasAlOrdenLocal: number;
+  perspectivaZona: 'catcher' | 'pitcher';
 }

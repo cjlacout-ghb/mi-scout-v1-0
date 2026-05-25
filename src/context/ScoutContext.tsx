@@ -6,7 +6,7 @@ import { cargarEstado, guardarEstado, estadoInicial, generarId } from '@/lib/sto
 
 // ─── Acciones ─────────────────────────────────────────────────────────────────
 type Accion =
-  | { type: 'INICIAR_PARTIDO'; payload: { partido: Partido; lineupVisitante: Bateador[]; lineupLocal: Bateador[] } }
+  | { type: 'INICIAR_PARTIDO'; payload: { partido: Partido; lineupVisitante: Bateador[]; lineupLocal: Bateador[]; perspectivaZona?: 'catcher' | 'pitcher' } }
   | { type: 'NUEVO_PARTIDO' }
   | { type: 'AGREGAR_BATEADOR'; payload: Omit<Bateador, 'id'> }
   | { type: 'AGREGAR_BATEADORES_MASIVO'; payload: Array<Omit<Bateador, 'id'>> }
@@ -17,10 +17,12 @@ type Accion =
   | { type: 'AVANZAR_BATEADOR' }
   | { type: 'CAMBIAR_MITAD_INNING' }
   | { type: 'RETROCEDER_MITAD_INNING' }
+  | { type: 'TOGGLE_EQUIPO_AL_BATE' }
   | { type: 'SET_BATEADOR_ACTUAL'; payload: { rol: 'visitante' | 'local'; indice: number } }
   | { type: 'SET_INNING'; payload: number }
   | { type: 'EDITAR_TURNO_AL_BATE'; payload: { id: string; datos: Partial<Omit<TurnoAlBate, 'id' | 'timestamp'>> } }
   | { type: 'ELIMINAR_TURNO_AL_BATE'; payload: string }
+  | { type: 'SET_PERSPECTIVA'; payload: 'catcher' | 'pitcher' }
   | { type: 'CARGAR_ESTADO'; payload: EstadoPartido };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
@@ -38,7 +40,11 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
         partido: accion.payload.partido,
         lineupVisitante: accion.payload.lineupVisitante,
         lineupLocal: accion.payload.lineupLocal,
+        perspectivaZona: accion.payload.perspectivaZona || 'catcher',
       };
+
+    case 'SET_PERSPECTIVA':
+      return { ...estado, perspectivaZona: accion.payload };
 
     case 'AGREGAR_BATEADOR': {
       const nuevo: Bateador = { ...accion.payload, id: generarId() };
@@ -161,6 +167,10 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
         if (nuevoInning === estado.inningActual) return estado;
         return { ...estado, mitadInning: 'baja', inningActual: nuevoInning };
       }
+    }
+
+    case 'TOGGLE_EQUIPO_AL_BATE': {
+      return { ...estado, mitadInning: estado.mitadInning === 'alta' ? 'baja' : 'alta' };
     }
 
     case 'SET_BATEADOR_ACTUAL': {

@@ -15,6 +15,7 @@ export const estadoInicial: EstadoPartido = {
   inningActual: 1,
   vueltasAlOrdenVisitante: 0,
   vueltasAlOrdenLocal: 0,
+  perspectivaZona: 'catcher',
 };
 
 export function cargarEstado(): EstadoPartido {
