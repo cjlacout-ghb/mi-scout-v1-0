@@ -59,7 +59,7 @@ export default function TrackingPage() {
     const tipo = (
       t.resultado === 'HIT'   ? 'contact' :
       t.resultado === 'OUT'   ? 'contact' :
-      t.resultado === 'BB/HP' ? 'ball'    : 'strike'
+      (t.resultado === 'BB' || t.resultado === 'HP') ? 'ball'    : 'strike'
     ) as 'strike' | 'ball' | 'contact';
     return [{ zona: t.zona, tipo, coordenadas: t.coordenadas, resultado: t.resultado, tipoPitch: t.tipoPitch }];
   });
@@ -139,7 +139,7 @@ export default function TrackingPage() {
   const ab = turnosBateador.length;
   const hits = turnosBateador.filter((t) => t.resultado === 'HIT').length;
   const ks  = turnosBateador.filter((t) => t.resultado === 'KS' || t.resultado === 'KL').length;
-  const bb  = turnosBateador.filter((t) => t.resultado === 'BB/HP').length;
+  const bb  = turnosBateador.filter((t) => t.resultado === 'BB' || t.resultado === 'HP').length;
   const af  = turnosBateador.filter((t) => t.detalleOut?.tipo === 'asistencia' || t.detalleOut?.tipo === 'fly').length;
 
   const ultimoTurno = turnosBateador[turnosBateador.length - 1];
@@ -341,7 +341,7 @@ export default function TrackingPage() {
           
           <button
             onClick={() => {
-              dispatch({ type: 'TOGGLE_EQUIPO_AL_BATE' });
+              avanzarMitad();
             }}
             style={{
               flexShrink: 0,

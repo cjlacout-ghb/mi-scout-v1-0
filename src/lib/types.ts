@@ -3,9 +3,10 @@
 export type TipoPitch = 'drop' | 'riser' | 'curva' | 'cambio' | 'otro';
 
 export type ResultadoAtBat =
-  | 'BB/HP'
-  | 'KS'    // Strikeout swinging
-  | 'KL'    // Strikeout looking
+  | 'BB'     // Base por bolas
+  | 'HP'     // Hit by pitch (golpe)
+  | 'KS'     // Strikeout swinging
+  | 'KL'     // Strikeout looking
   | 'OUT'
   | 'HIT';
 

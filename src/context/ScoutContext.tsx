@@ -17,7 +17,7 @@ type Accion =
   | { type: 'AVANZAR_BATEADOR' }
   | { type: 'CAMBIAR_MITAD_INNING' }
   | { type: 'RETROCEDER_MITAD_INNING' }
-  | { type: 'TOGGLE_EQUIPO_AL_BATE' }
+
   | { type: 'SET_BATEADOR_ACTUAL'; payload: { rol: 'visitante' | 'local'; indice: number } }
   | { type: 'SET_INNING'; payload: number }
   | { type: 'EDITAR_TURNO_AL_BATE'; payload: { id: string; datos: Partial<Omit<TurnoAlBate, 'id' | 'timestamp'>> } }
@@ -169,9 +169,7 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
       }
     }
 
-    case 'TOGGLE_EQUIPO_AL_BATE': {
-      return { ...estado, mitadInning: estado.mitadInning === 'alta' ? 'baja' : 'alta' };
-    }
+
 
     case 'SET_BATEADOR_ACTUAL': {
       if (accion.payload.rol === 'visitante') {

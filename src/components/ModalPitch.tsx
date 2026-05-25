@@ -59,27 +59,20 @@ const TIPOS_PITCH: { value: TipoPitch; label: string }[] = [
   { value: 'otro',   label: 'Otro' },
 ];
 
-const TIPOS_RESULTADO: { value: ResultadoAtBat; label: string; color: string; desc: string }[] = [
-  { value: 'BB/HP', label: 'BB / HP', color: 'var(--info)',    desc: 'Base por bolas o golpe' },
-  { value: 'KS',    label: 'KS',      color: 'var(--danger)',  desc: 'Strikeout abanicando' },
-  { value: 'KL',    label: 'KL',      color: 'var(--danger)',  desc: 'Strikeout cantado' },
-  { value: 'OUT',   label: 'OUT',     color: 'var(--warning)', desc: 'Out en juego' },
-  { value: 'HIT',   label: 'HIT',     color: 'var(--success)', desc: 'Llegó a base' },
-];
 
 const TIPOS_OUT: { value: TipoOut; label: string; desc: string }[] = [
   { value: 'asistencia', label: 'Asistencia', desc: 'Rodado / Tiro' },
-  { value: 'sac bunt',   label: 'Sac Bunt',   desc: 'Sacrificio' },
   { value: 'fly',        label: 'Fly',        desc: 'Elevado' },
+  { value: 'sac bunt',   label: 'Sac Bunt',   desc: 'Sacrificio' },
 ];
 
 const TIPOS_HIT: { value: TipoHit; label: string }[] = [
-  { value: 'bunt',    label: 'Bunt' },
   { value: 'single',  label: 'Single' },
   { value: 'doble',   label: 'Doble' },
   { value: 'triple',  label: 'Triple' },
   { value: 'homerun', label: 'Home Run' },
   { value: 'infield hit', label: 'Infield Hit' },
+  { value: 'bunt',    label: 'Bunt Hit' },
 ];
 
 export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
@@ -165,19 +158,64 @@ export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
       case 'resultado':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {TIPOS_RESULTADO.map((r) => (
+            {/* OUT */}
+            <button
+              className="option-btn"
+              style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 14 }}
+              onClick={() => elegirResultado('OUT')}
+            >
+              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--success)', width: 50 }}>OUT</span>
+              <span className="option-btn__label" style={{ fontSize: '0.82rem', marginTop: 0 }}>Out en juego</span>
+            </button>
+            {/* Grouped KS / KL card */}
+            <div
+              className="option-btn"
+              style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 0, padding: 0, overflow: 'hidden', cursor: 'default' }}
+            >
               <button
-                key={r.value}
-                className="option-btn"
-                style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 14 }}
-                onClick={() => elegirResultado(r.value)}
+                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', borderRight: '1px solid var(--border)', cursor: 'pointer', color: 'inherit' }}
+                onClick={() => elegirResultado('KS')}
               >
-                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: r.color, width: 50 }}>
-                  {r.label}
-                </span>
-                <span className="option-btn__label" style={{ fontSize: '0.82rem', marginTop: 0 }}>{r.desc}</span>
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--success)', width: 36 }}>KS</span>
+                <span className="option-btn__label" style={{ fontSize: '0.75rem', marginTop: 0 }}>Abanicando</span>
               </button>
-            ))}
+              <button
+                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
+                onClick={() => elegirResultado('KL')}
+              >
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--success)', width: 36 }}>KL</span>
+                <span className="option-btn__label" style={{ fontSize: '0.75rem', marginTop: 0 }}>Cantado</span>
+              </button>
+            </div>
+            {/* HIT */}
+            <button
+              className="option-btn"
+              style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 14 }}
+              onClick={() => elegirResultado('HIT')}
+            >
+              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--danger)', width: 50 }}>HIT</span>
+              <span className="option-btn__label" style={{ fontSize: '0.82rem', marginTop: 0 }}>Llegó a base</span>
+            </button>
+            {/* Grouped BB / HP card */}
+            <div
+              className="option-btn"
+              style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 0, padding: 0, overflow: 'hidden', cursor: 'default' }}
+            >
+              <button
+                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', borderRight: '1px solid var(--border)', cursor: 'pointer', color: 'inherit' }}
+                onClick={() => elegirResultado('BB')}
+              >
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--info)', width: 36 }}>BB</span>
+                <span className="option-btn__label" style={{ fontSize: '0.75rem', marginTop: 0 }}>Base por bolas</span>
+              </button>
+              <button
+                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
+                onClick={() => elegirResultado('HP')}
+              >
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--info)', width: 36 }}>HP</span>
+                <span className="option-btn__label" style={{ fontSize: '0.75rem', marginTop: 0 }}>Golpe</span>
+              </button>
+            </div>
           </div>
         );
 

@@ -81,7 +81,8 @@ export function calcularEstadisticas(
         break;
       case 'KS': ks++; break;
       case 'KL': kl++; break;
-      case 'BB/HP': bb++; break;
+      case 'BB':
+      case 'HP': bb++; break;
     }
   }
 

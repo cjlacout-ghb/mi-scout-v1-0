@@ -163,7 +163,7 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
           if (m.resultado) {
             if (m.resultado === 'HIT') colorResultado = 'var(--success)';
             else if (m.resultado === 'OUT' || m.resultado.startsWith('K')) colorResultado = 'var(--danger)';
-            else if (m.resultado === 'BB/HP') colorResultado = 'var(--info)';
+            else if (m.resultado === 'BB' || m.resultado === 'HP') colorResultado = 'var(--info)';
           }
 
           return (
