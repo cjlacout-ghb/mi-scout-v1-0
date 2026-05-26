@@ -140,7 +140,10 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
       if (activos.length === 0) return estado;
       
       const indiceActual = isVisitante ? estado.indiceVisitante : estado.indiceLocal;
-      const siguiente = (indiceActual + 1) % activos.length;
+      let siguiente = indiceActual + 1;
+      if (activos.length >= 9) {
+        siguiente = siguiente % activos.length;
+      }
       
       if (isVisitante) {
         const vueltas = siguiente < indiceActual ? estado.vueltasAlOrdenVisitante + 1 : estado.vueltasAlOrdenVisitante;

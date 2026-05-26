@@ -46,7 +46,35 @@ export default function TrackingPage() {
       <div className="empty-state">
         <div className="empty-state__icon">👥</div>
         <div className="empty-state__title">Line-up vacío</div>
-        <p className="empty-state__text">Cargá los bateadores en la pantalla Line-Up.</p>
+        <p className="empty-state__text">Cargá el primer bateador para comenzar.</p>
+        <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => setShowAgregarBateador(true)}>
+          Agregar Bateador
+        </button>
+        {showAgregarBateador && estado.partido && (
+          <ModalBateador
+            titulo="Primer bateador"
+            subtitulo="Orden al bate: 1"
+            onGuardar={(d: import('@/components/ModalBateador').FormBateador) => {
+              dispatch({
+                type: 'AGREGAR_BATEADOR',
+                payload: {
+                  ...d,
+                  equipo: equipoAlBate === 'visitante' ? estado.partido!.visitante : estado.partido!.local,
+                  rol: equipoAlBate,
+                  orden: 1,
+                  activo: true,
+                  esAbridor: true,
+                },
+              });
+              dispatch({
+                type: 'SET_BATEADOR_ACTUAL',
+                payload: { rol: equipoAlBate, indice: 0 },
+              });
+              setShowAgregarBateador(false);
+            }}
+            onClose={() => setShowAgregarBateador(false)}
+          />
+        )}
       </div>
     );
   }
@@ -119,6 +147,16 @@ export default function TrackingPage() {
     setCoordenadasSeleccionadas(null);
   };
 
+  const checkMissingBatter = (esAlta: boolean) => {
+    const isVisitante = esAlta;
+    const lineup = isVisitante ? estado.lineupVisitante : estado.lineupLocal;
+    const activos = lineup.filter(b => b.activo);
+    const idx = isVisitante ? estado.indiceVisitante : estado.indiceLocal;
+    if (activos.length > 0 && activos.length < 9 && idx >= activos.length) {
+      setShowAgregarBateador(true);
+    }
+  };
+
   const avanzarMitad = () => {
     if (esperandoConfirmacion && !turnoEditando) {
       dispatch({ type: 'AVANZAR_BATEADOR' });
@@ -126,6 +164,7 @@ export default function TrackingPage() {
     setEsperandoConfirmacion(false);
     setTurnoEditando(null);
     dispatch({ type: 'CAMBIAR_MITAD_INNING' });
+    checkMissingBatter(estado.mitadInning === 'alta' ? false : true); // Inning will change
   };
 
   const retrocederMitad = () => {
@@ -135,6 +174,7 @@ export default function TrackingPage() {
     setEsperandoConfirmacion(false);
     setTurnoEditando(null);
     dispatch({ type: 'RETROCEDER_MITAD_INNING' });
+    checkMissingBatter(estado.mitadInning === 'baja' ? true : false); // Inning will change
   };
 
   // Contar stats rápidas del bateador actual
@@ -297,16 +337,11 @@ export default function TrackingPage() {
               className="btn btn-primary btn-sm"
               onClick={() => {
                 setEsperandoConfirmacion(false);
-                // Check if the next batter exists
+                dispatch({ type: 'AVANZAR_BATEADOR' });
                 const indiceActual = equipoAlBate === 'visitante' ? estado.indiceVisitante : estado.indiceLocal;
-                const siguienteIdx = (indiceActual + 1) % bateadoresActivos.length;
-                const vaACiclar = siguienteIdx <= indiceActual;
-                if (vaACiclar && bateadoresActivos.length < 9) {
-                  // No next batter loaded yet, show add-batter modal
-                  dispatch({ type: 'AVANZAR_BATEADOR' });
+                const siguienteIdx = indiceActual + 1;
+                if (siguienteIdx >= bateadoresActivos.length && bateadoresActivos.length < 9) {
                   setShowAgregarBateador(true);
-                } else {
-                  dispatch({ type: 'AVANZAR_BATEADOR' });
                 }
               }}
               style={{ width: 120 }}
