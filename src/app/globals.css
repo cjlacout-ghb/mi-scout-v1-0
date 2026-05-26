@@ -248,7 +248,7 @@ body {
 
 .btn-danger {
   background: rgba(231, 76, 60, 0.15);
-  color: var(--danger);
+  color: #E74C3C;
   border: 1px solid rgba(231, 76, 60, 0.3);
 }
 
@@ -333,7 +333,7 @@ body {
 
 .badge-danger {
   background: rgba(231, 76, 60, 0.15);
-  color: var(--danger);
+  color: #E74C3C;
 }
 
 /* ─── Sección headers ────────────────────────────────────────────────────────── */
@@ -468,7 +468,7 @@ body {
 
 .option-btn.danger {
   border-color: rgba(231, 76, 60, 0.4);
-  color: var(--danger);
+  color: #E74C3C;
 }
 
 .option-btn.success {

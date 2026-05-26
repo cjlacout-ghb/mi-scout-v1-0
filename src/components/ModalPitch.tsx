@@ -90,7 +90,7 @@ export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
     if (r === 'OUT') setPaso('detalle_out');
     else if (r === 'HIT') setPaso('detalle_hit');
     else {
-      // BB/HP, KS, KL → finalizar
+      // BB/HBP, KS, KL → finalizar
       onConfirmar({
         zona: estado.zona,
         tipoPitch: estado.tipoPitch!,
@@ -161,11 +161,10 @@ export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
             {/* OUT */}
             <button
               className="option-btn"
-              style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 14 }}
+              style={{ flexDirection: 'row', justifyContent: 'center', gap: 14 }}
               onClick={() => elegirResultado('OUT')}
             >
-              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--success)', width: 50 }}>OUT</span>
-              <span className="option-btn__label" style={{ fontSize: '0.82rem', marginTop: 0 }}>Out en juego</span>
+              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--success)' }}>OUT</span>
             </button>
             {/* Grouped KS / KL card */}
             <div
@@ -173,47 +172,42 @@ export default function ModalPitch({ zona, onConfirmar, onCancelar }: Props) {
               style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 0, padding: 0, overflow: 'hidden', cursor: 'default' }}
             >
               <button
-                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', borderRight: '1px solid var(--border)', cursor: 'pointer', color: 'inherit' }}
+                style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', borderRight: '1px solid var(--border)', cursor: 'pointer', color: 'inherit' }}
                 onClick={() => elegirResultado('KS')}
               >
-                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--success)', width: 36 }}>KS</span>
-                <span className="option-btn__label" style={{ fontSize: '0.75rem', marginTop: 0 }}>Abanicando</span>
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--success)' }}>KS</span>
               </button>
               <button
-                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
+                style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
                 onClick={() => elegirResultado('KL')}
               >
-                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--success)', width: 36 }}>KL</span>
-                <span className="option-btn__label" style={{ fontSize: '0.75rem', marginTop: 0 }}>Cantado</span>
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--success)' }}>KL</span>
               </button>
             </div>
             {/* HIT */}
             <button
               className="option-btn"
-              style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 14 }}
+              style={{ flexDirection: 'row', justifyContent: 'center', gap: 14 }}
               onClick={() => elegirResultado('HIT')}
             >
-              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--danger)', width: 50 }}>HIT</span>
-              <span className="option-btn__label" style={{ fontSize: '0.82rem', marginTop: 0 }}>Llegó a base</span>
+              <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--danger)' }}>HIT</span>
             </button>
-            {/* Grouped BB / HP card */}
+            {/* Grouped BB / HBP card */}
             <div
               className="option-btn"
               style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 0, padding: 0, overflow: 'hidden', cursor: 'default' }}
             >
               <button
-                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', borderRight: '1px solid var(--border)', cursor: 'pointer', color: 'inherit' }}
+                style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', borderRight: '1px solid var(--border)', cursor: 'pointer', color: 'inherit' }}
                 onClick={() => elegirResultado('BB')}
               >
-                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--info)', width: 36 }}>BB</span>
-                <span className="option-btn__label" style={{ fontSize: '0.75rem', marginTop: 0 }}>Base por bolas</span>
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--info)' }}>BB</span>
               </button>
               <button
-                style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
-                onClick={() => elegirResultado('HP')}
+                style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
+                onClick={() => elegirResultado('HBP')}
               >
-                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--info)', width: 36 }}>HP</span>
-                <span className="option-btn__label" style={{ fontSize: '0.75rem', marginTop: 0 }}>Golpe</span>
+                <span style={{ fontSize: '1.3rem', fontWeight: 900, color: 'var(--info)' }}>HBP</span>
               </button>
             </div>
           </div>

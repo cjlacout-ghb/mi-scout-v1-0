@@ -82,7 +82,7 @@ export function calcularEstadisticas(
       case 'KS': ks++; break;
       case 'KL': kl++; break;
       case 'BB':
-      case 'HP': bb++; break;
+      case 'HBP': bb++; break;
     }
   }
 
@@ -138,7 +138,7 @@ export function generarReporteMD(bateador: import('./types').Bateador, stats: Es
   md += `---\n\n`;
 
   md += `## Resumen\n\n`;
-  md += `| AB | H | 2B | 3B | HR | KS | KL | BB/HP | OUT | AVG |\n`;
+  md += `| AB | H | 2B | 3B | HR | KS | KL | BB/HBP | OUT | AVG |\n`;
   md += `|----|---|----|----|----|----|----|----|-----|-----|\n`;
   md += `| ${stats.turnosAlBate} | ${stats.hits} | ${stats.dobles} | ${stats.triples} | ${stats.homeRuns} | ${stats.strikeoutsSwinging} | ${stats.strikeoutsLooking} | ${stats.basesPorBolas} | ${stats.outs} | ${avg} |\n\n`;
 

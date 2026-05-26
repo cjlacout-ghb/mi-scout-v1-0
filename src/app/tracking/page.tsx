@@ -59,7 +59,7 @@ export default function TrackingPage() {
     const tipo = (
       t.resultado === 'HIT'   ? 'contact' :
       t.resultado === 'OUT'   ? 'contact' :
-      (t.resultado === 'BB' || t.resultado === 'HP') ? 'ball'    : 'strike'
+      (t.resultado === 'BB' || t.resultado === 'HBP') ? 'ball'    : 'strike'
     ) as 'strike' | 'ball' | 'contact';
     return [{ zona: t.zona, tipo, coordenadas: t.coordenadas, resultado: t.resultado, tipoPitch: t.tipoPitch }];
   });
@@ -139,7 +139,7 @@ export default function TrackingPage() {
   const ab = turnosBateador.length;
   const hits = turnosBateador.filter((t) => t.resultado === 'HIT').length;
   const ks  = turnosBateador.filter((t) => t.resultado === 'KS' || t.resultado === 'KL').length;
-  const bb  = turnosBateador.filter((t) => t.resultado === 'BB' || t.resultado === 'HP').length;
+  const bb  = turnosBateador.filter((t) => t.resultado === 'BB' || t.resultado === 'HBP').length;
   const af  = turnosBateador.filter((t) => t.detalleOut?.tipo === 'asistencia' || t.detalleOut?.tipo === 'fly').length;
 
   const ultimoTurno = turnosBateador[turnosBateador.length - 1];
@@ -179,13 +179,13 @@ export default function TrackingPage() {
 
           {/* Inning control */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-            <button onClick={retrocederMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1.5rem', lineHeight: 1 }}>−</button>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Inn</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 4 }}>
-              {estado.mitadInning === 'alta' ? <span style={{ color: 'var(--text-primary)' }}>▲</span> : <span style={{ color: 'var(--text-primary)' }}>▼</span>}
-              <span style={{ color: 'var(--accent)' }}>{estado.inningActual}</span>
-            </div>
             <button onClick={avanzarMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1.5rem', lineHeight: 1 }}>+</button>
+            <div style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              {estado.mitadInning === 'alta' ? <span style={{ color: 'var(--text-primary)', lineHeight: 1 }}>▲</span> : <span style={{ opacity: 0, lineHeight: 1 }}>▲</span>}
+              <span style={{ color: 'var(--accent)', lineHeight: 1 }}>{estado.inningActual}</span>
+              {estado.mitadInning === 'baja' ? <span style={{ color: 'var(--text-primary)', lineHeight: 1 }}>▼</span> : <span style={{ opacity: 0, lineHeight: 1 }}>▼</span>}
+            </div>
+            <button onClick={retrocederMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1.5rem', lineHeight: 1 }}>−</button>
           </div>
         </div>
 
@@ -209,7 +209,7 @@ export default function TrackingPage() {
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--danger)' }}>{ks}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.62rem', color: 'var(--info)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>BB/HP</div>
+              <div style={{ fontSize: '0.62rem', color: 'var(--info)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>BB/HBP</div>
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--info)' }}>{bb}</div>
             </div>
             {ultimoTurno && (

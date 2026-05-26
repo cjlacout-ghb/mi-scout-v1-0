@@ -92,6 +92,13 @@ function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
                 type="date"
                 value={fecha}
                 onChange={(e) => setFecha(e.target.value)}
+                onClick={(e) => {
+                  try {
+                    if ('showPicker' in e.currentTarget) {
+                      (e.currentTarget as any).showPicker();
+                    }
+                  } catch (err) {}
+                }}
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
               />
             </div>
@@ -99,7 +106,7 @@ function ModalNuevoPartido({ onClose }: { onClose: () => void }) {
           <div className="form-group">
             <label className="label">Vista de zona de strike</label>
             <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginBottom: 8, lineHeight: 1.4 }}>
-              Desde qué perspectiva vas a marcar los lanzamientos
+              ¿Desde qué perspectiva vas a marcar los lanzamientos?
             </p>
             <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
               {(['catcher', 'pitcher'] as const).map(p => (

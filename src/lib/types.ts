@@ -4,7 +4,7 @@ export type TipoPitch = 'drop' | 'riser' | 'curva' | 'cambio' | 'otro';
 
 export type ResultadoAtBat =
   | 'BB'     // Base por bolas
-  | 'HP'     // Hit by pitch (golpe)
+  | 'HBP'     // Hit by pitch (golpe)
   | 'KS'     // Strikeout swinging
   | 'KL'     // Strikeout looking
   | 'OUT'
@@ -84,7 +84,7 @@ export interface EstadisticasBateador {
   homeRuns: number;
   strikeoutsSwinging: number; // KS
   strikeoutsLooking: number;  // KL
-  basesPorBolas: number;      // BB/HP
+  basesPorBolas: number;      // BB/HBP
   outs: number;
   promedio: number;           // AVG = H / AB
   porZona: Record<ZonaStrike, { pitches: number; hits: number; outs: number; contacto: number }>;
