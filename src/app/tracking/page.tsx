@@ -470,6 +470,13 @@ export default function TrackingPage() {
                 esAbridor: true,
               },
             });
+            dispatch({
+              type: 'SET_BATEADOR_ACTUAL',
+              payload: {
+                rol: equipoAlBate,
+                indice: bateadoresActivos.length,
+              },
+            });
           }}
           onClose={() => setShowAgregarBateador(false)}
         />
