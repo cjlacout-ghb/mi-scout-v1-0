@@ -5,6 +5,7 @@ import { useScout } from '@/context/ScoutContext';
 import ZonaStrikeComponent from '@/components/ZonaStrike';
 import ModalPitch from '@/components/ModalPitch';
 import ModalConfirm from '@/components/ModalConfirm';
+import ModalBateador, { type FormBateador } from '@/components/ModalBateador';
 import type { ZonaStrike, TurnoAlBate, Coordenadas } from '@/lib/types';
 
 export default function TrackingPage() {
@@ -15,6 +16,7 @@ export default function TrackingPage() {
   const [turnoAEliminar, setTurnoAEliminar] = useState<string | null>(null);
   const [esperandoConfirmacion, setEsperandoConfirmacion] = useState(false);
   const [avisoInning, setAvisoInning] = useState(false);
+  const [showAgregarBateador, setShowAgregarBateador] = useState(false);
 
 
   const prevEquipoRef = useRef(equipoAlBate);
@@ -295,7 +297,17 @@ export default function TrackingPage() {
               className="btn btn-primary btn-sm"
               onClick={() => {
                 setEsperandoConfirmacion(false);
-                dispatch({ type: 'AVANZAR_BATEADOR' });
+                // Check if the next batter exists
+                const indiceActual = equipoAlBate === 'visitante' ? estado.indiceVisitante : estado.indiceLocal;
+                const siguienteIdx = (indiceActual + 1) % bateadoresActivos.length;
+                const vaACiclar = siguienteIdx <= indiceActual;
+                if (vaACiclar && bateadoresActivos.length < 9) {
+                  // No next batter loaded yet, show add-batter modal
+                  dispatch({ type: 'AVANZAR_BATEADOR' });
+                  setShowAgregarBateador(true);
+                } else {
+                  dispatch({ type: 'AVANZAR_BATEADOR' });
+                }
               }}
               style={{ width: 120 }}
             >
@@ -438,6 +450,28 @@ export default function TrackingPage() {
             setTurnoAEliminar(null);
           }}
           onCancelar={() => setTurnoAEliminar(null)}
+        />
+      )}
+      {showAgregarBateador && estado.partido && (
+        <ModalBateador
+          titulo="Siguiente bateador"
+          subtitulo={`Orden al bate: ${bateadoresActivos.length + 1}`}
+          onGuardar={(d: FormBateador) => {
+            const lineupActual = equipoAlBate === 'visitante' ? estado.lineupVisitante : estado.lineupLocal;
+            const ordenMaximo = Math.max(0, ...lineupActual.map(b => b.orden));
+            dispatch({
+              type: 'AGREGAR_BATEADOR',
+              payload: {
+                ...d,
+                equipo: equipoAlBate === 'visitante' ? estado.partido!.visitante : estado.partido!.local,
+                rol: equipoAlBate,
+                orden: ordenMaximo + 1,
+                activo: true,
+                esAbridor: true,
+              },
+            });
+          }}
+          onClose={() => setShowAgregarBateador(false)}
         />
       )}
     </div>
