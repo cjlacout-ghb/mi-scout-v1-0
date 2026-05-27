@@ -10,7 +10,7 @@ export type ResultadoAtBat =
   | 'OUT'
   | 'HIT';
 
-export type TipoOut = 'asistencia' | 'sac bunt' | 'fly';
+export type TipoOut = 'asistencia' | 'sac bunt' | 'fly' | 'linea';
 export type TipoHit = 'bunt' | 'single' | 'doble' | 'triple' | 'homerun' | 'infield hit';
 export type CalidadContacto = 'soft' | 'hard';
 

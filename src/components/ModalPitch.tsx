@@ -63,6 +63,7 @@ const TIPOS_PITCH: { value: TipoPitch; label: string }[] = [
 const TIPOS_OUT: { value: TipoOut; label: string; desc: string }[] = [
   { value: 'asistencia', label: 'Asistencia', desc: 'Rodado / Tiro' },
   { value: 'fly',        label: 'Fly',        desc: 'Elevado' },
+  { value: 'linea',      label: 'De Línea',   desc: 'Line Drive' },
   { value: 'sac bunt',   label: 'Sac Bunt',   desc: 'Sacrificio' },
 ];
 
