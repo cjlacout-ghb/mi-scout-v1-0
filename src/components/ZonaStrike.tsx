@@ -161,8 +161,8 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
 
           let colorResultado = 'var(--text-primary)';
           if (m.resultado) {
-            if (m.resultado === 'HIT') colorResultado = 'var(--success)';
-            else if (m.resultado === 'OUT' || m.resultado.startsWith('K')) colorResultado = 'var(--danger)';
+            if (m.resultado === 'HIT') colorResultado = 'var(--danger)';
+            else if (m.resultado === 'OUT' || m.resultado.startsWith('K')) colorResultado = 'var(--success)';
             else if (m.resultado === 'BB' || m.resultado === 'HBP') colorResultado = 'var(--info)';
           }
 

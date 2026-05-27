@@ -244,8 +244,8 @@ export default function TrackingPage() {
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-secondary)' }}>{ab}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.62rem', color: 'var(--success)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>H</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--success)' }}>{hits}</div>
+              <div style={{ fontSize: '0.62rem', color: 'var(--danger)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>H</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--danger)' }}>{hits}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '0.62rem', color: '#FFFFFF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>A/F</div>
@@ -264,7 +264,7 @@ export default function TrackingPage() {
                 <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Último</div>
                 <div style={{
                   fontSize: '0.95rem', fontWeight: 800,
-                  color: ultimoTurno.resultado === 'HIT' ? 'var(--success)' : ultimoTurno.resultado === 'OUT' || ultimoTurno.resultado.startsWith('K') ? 'var(--danger)' : 'var(--info)',
+                  color: ultimoTurno.resultado === 'HIT' ? 'var(--danger)' : ultimoTurno.resultado === 'OUT' || ultimoTurno.resultado.startsWith('K') ? 'var(--success)' : 'var(--info)',
                 }}>
                   {ultimoTurno.resultado}
                 </div>
@@ -430,7 +430,7 @@ export default function TrackingPage() {
                 background: 'var(--bg-elevated)',
                 borderRadius: 8,
                 marginBottom: 6,
-                borderLeft: `3px solid ${t.resultado === 'HIT' ? 'var(--success)' : t.resultado === 'OUT' || t.resultado.startsWith('K') ? 'var(--danger)' : 'var(--info)'}`,
+                borderLeft: `3px solid ${t.resultado === 'HIT' ? 'var(--danger)' : t.resultado === 'OUT' || t.resultado.startsWith('K') ? 'var(--success)' : 'var(--info)'}`,
               }}
             >
               <span className="text-xs text-secondary">Inn {t.inning}</span>
@@ -440,7 +440,7 @@ export default function TrackingPage() {
               <span style={{
                 fontWeight: 800,
                 fontSize: '0.88rem',
-                color: t.resultado === 'HIT' ? 'var(--success)' : t.resultado === 'OUT' || t.resultado.startsWith('K') ? 'var(--danger)' : 'var(--info)',
+                color: t.resultado === 'HIT' ? 'var(--danger)' : t.resultado === 'OUT' || t.resultado.startsWith('K') ? 'var(--success)' : 'var(--info)',
                 marginRight: 4
               }}>
                 {t.resultado}

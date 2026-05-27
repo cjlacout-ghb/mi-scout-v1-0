@@ -23,8 +23,8 @@
   --heat-cold:     #1A3A5C;
 
   /* Status */
-  --success:       #E74C3C;
-  --danger:        #27AE60;
+  --success:       #27AE60;
+  --danger:        #E74C3C;
   --warning:       #F39C12;
   --info:          #3498DB;
 

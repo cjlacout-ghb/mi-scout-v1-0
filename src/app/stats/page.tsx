@@ -86,9 +86,9 @@ export default function StatsPage() {
           <div className="stats-row" style={{ paddingTop: 12 }}>
             {[
               { label: 'AB', value: stats.turnosAlBate },
-              { label: 'H',  value: stats.hits,  color: 'var(--success)' },
-              { label: 'KS', value: stats.strikeoutsSwinging, color: 'var(--danger)' },
-              { label: 'KL', value: stats.strikeoutsLooking,  color: 'var(--danger)' },
+              { label: 'H',  value: stats.hits,  color: 'var(--danger)' },
+              { label: 'KS', value: stats.strikeoutsSwinging, color: 'var(--success)' },
+              { label: 'KL', value: stats.strikeoutsLooking,  color: 'var(--success)' },
               { label: 'BB/HBP', value: stats.basesPorBolas, color: 'var(--info)' },
               { label: 'OUT',value: stats.outs },
               { label: 'AVG',value: avg, color: 'var(--accent)' },
@@ -137,10 +137,10 @@ export default function StatsPage() {
                           <span style={{ fontWeight: 700 }}>Zona {z}</span>
                         </td>
                         <td style={{ textAlign: 'center' }}>{d.pitches}</td>
-                        <td style={{ textAlign: 'center', color: d.hits > 0 ? 'var(--success)' : 'var(--text-secondary)' }}>
+                        <td style={{ textAlign: 'center', color: d.hits > 0 ? 'var(--danger)' : 'var(--text-secondary)' }}>
                           {d.hits}
                         </td>
-                        <td style={{ textAlign: 'center', color: d.outs > 0 ? 'var(--danger)' : 'var(--text-secondary)' }}>
+                        <td style={{ textAlign: 'center', color: d.outs > 0 ? 'var(--success)' : 'var(--text-secondary)' }}>
                           {d.outs}
                         </td>
                         <td style={{ textAlign: 'center', fontWeight: 700, color: pct > 50 ? 'var(--danger)' : pct > 25 ? 'var(--warning)' : 'var(--text-secondary)' }}>
