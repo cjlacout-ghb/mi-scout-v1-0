@@ -5,7 +5,7 @@ import type { ZonaStrike, Coordenadas } from '@/lib/types';
 interface Props {
   onZonaClick: (zona: ZonaStrike, coordenadas?: Coordenadas) => void;
   /** Marcadores a mostrar sobre la zona (turnos del bateador actual) */
-  marcadores?: { zona: ZonaStrike; tipo: 'ball' | 'strike' | 'contact'; coordenadas?: Coordenadas; resultado?: string; tipoPitch?: string }[];
+  marcadores?: { zona: ZonaStrike; tipo: 'ball' | 'strike' | 'contact'; coordenadas?: Coordenadas; resultado?: string; tipoPitch?: string; calidad?: string }[];
   /** Modo heat map: overlay de color por zona */
   heatMap?: Partial<Record<ZonaStrike, number>>;  // 0-1 intensidad
   /** Lado de bateo del bateador actual (D=Derecho, Z=Zurdo, S=Switch) */
@@ -173,10 +173,25 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
               style={{
                 top: topStr,
                 left: leftStr,
-                transform: 'translate(-50%, -50%)', // Centramos el marcador en la coordenada exacta
+                transform: 'translate(-50%, -50%)',
                 ...(m.resultado && colorResultado !== 'var(--text-primary)' ? { background: colorResultado } : {})
               }}
             >
+              {m.calidad === 'hard' && (m.resultado === 'HIT' || m.resultado === 'OUT') && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: '180%',
+                    height: '180%',
+                    borderRadius: '50%',
+                    border: `2px solid ${m.resultado === 'HIT' ? 'var(--danger)' : 'var(--success)'}`,
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
               {m.resultado && (
                 <div 
                   className="pitch-tooltip"

@@ -91,7 +91,8 @@ export default function TrackingPage() {
       t.resultado === 'OUT'   ? 'contact' :
       (t.resultado === 'BB' || t.resultado === 'HBP') ? 'ball'    : 'strike'
     ) as 'strike' | 'ball' | 'contact';
-    return [{ zona: t.zona, tipo, coordenadas: t.coordenadas, resultado: t.resultado, tipoPitch: t.tipoPitch }];
+    const calidad = t.detalleOut?.calidad || t.detalleHit?.calidad;
+    return [{ zona: t.zona, tipo, coordenadas: t.coordenadas, resultado: t.resultado, tipoPitch: t.tipoPitch, calidad }];
   });
 
   const handleZonaClick = (zona: ZonaStrike, coordenadas?: Coordenadas) => {
