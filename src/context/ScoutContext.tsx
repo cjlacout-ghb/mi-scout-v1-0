@@ -155,20 +155,65 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
     }
 
     case 'CAMBIAR_MITAD_INNING': {
-      if (estado.mitadInning === 'alta') {
-        return { ...estado, mitadInning: 'baja' };
+      const nuevoMitad = estado.mitadInning === 'alta' ? 'baja' : 'alta';
+      const nuevoInning = estado.mitadInning === 'alta' ? estado.inningActual : estado.inningActual + 1;
+      const isVisitante = nuevoMitad === 'alta';
+      const lineup = isVisitante ? estado.lineupVisitante : estado.lineupLocal;
+      const activos = lineup.filter(b => b.activo);
+      
+      let nuevoIndice = isVisitante ? estado.indiceVisitante : estado.indiceLocal;
+      
+      // Auto-detectar el último bateador en turno y sumar 1
+      const turnosEquipo = estado.turnosAlBate.filter(t => activos.some(b => b.id === t.bateadorId));
+      if (turnosEquipo.length > 0) {
+        const ultimoTurno = turnosEquipo[turnosEquipo.length - 1];
+        const lastBatterIndex = activos.findIndex(b => b.id === ultimoTurno.bateadorId);
+        if (lastBatterIndex !== -1) {
+          nuevoIndice = lastBatterIndex + 1;
+          if (activos.length >= 9) {
+            nuevoIndice = nuevoIndice % activos.length;
+          }
+        }
       } else {
-        return { ...estado, mitadInning: 'alta', inningActual: estado.inningActual + 1 };
+        nuevoIndice = 0;
+      }
+
+      if (isVisitante) {
+        return { ...estado, mitadInning: nuevoMitad, inningActual: nuevoInning, indiceVisitante: nuevoIndice };
+      } else {
+        return { ...estado, mitadInning: nuevoMitad, inningActual: nuevoInning, indiceLocal: nuevoIndice };
       }
     }
 
     case 'RETROCEDER_MITAD_INNING': {
-      if (estado.mitadInning === 'baja') {
-        return { ...estado, mitadInning: 'alta' };
+      const nuevoMitad = estado.mitadInning === 'baja' ? 'alta' : 'baja';
+      const nuevoInning = estado.mitadInning === 'baja' ? estado.inningActual : Math.max(1, estado.inningActual - 1);
+      if (nuevoInning === estado.inningActual && estado.mitadInning === 'alta') return estado;
+
+      const isVisitante = nuevoMitad === 'alta';
+      const lineup = isVisitante ? estado.lineupVisitante : estado.lineupLocal;
+      const activos = lineup.filter(b => b.activo);
+      
+      let nuevoIndice = isVisitante ? estado.indiceVisitante : estado.indiceLocal;
+      
+      const turnosEquipo = estado.turnosAlBate.filter(t => activos.some(b => b.id === t.bateadorId));
+      if (turnosEquipo.length > 0) {
+        const ultimoTurno = turnosEquipo[turnosEquipo.length - 1];
+        const lastBatterIndex = activos.findIndex(b => b.id === ultimoTurno.bateadorId);
+        if (lastBatterIndex !== -1) {
+          nuevoIndice = lastBatterIndex + 1;
+          if (activos.length >= 9) {
+            nuevoIndice = nuevoIndice % activos.length;
+          }
+        }
       } else {
-        const nuevoInning = Math.max(1, estado.inningActual - 1);
-        if (nuevoInning === estado.inningActual) return estado;
-        return { ...estado, mitadInning: 'baja', inningActual: nuevoInning };
+        nuevoIndice = 0;
+      }
+
+      if (isVisitante) {
+        return { ...estado, mitadInning: nuevoMitad, inningActual: nuevoInning, indiceVisitante: nuevoIndice };
+      } else {
+        return { ...estado, mitadInning: nuevoMitad, inningActual: nuevoInning, indiceLocal: nuevoIndice };
       }
     }
 

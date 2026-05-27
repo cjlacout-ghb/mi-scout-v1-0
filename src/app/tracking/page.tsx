@@ -147,15 +147,21 @@ export default function TrackingPage() {
     setCoordenadasSeleccionadas(null);
   };
 
-  const checkMissingBatter = (esAlta: boolean) => {
-    const isVisitante = esAlta;
-    const lineup = isVisitante ? estado.lineupVisitante : estado.lineupLocal;
-    const activos = lineup.filter(b => b.activo);
-    const idx = isVisitante ? estado.indiceVisitante : estado.indiceLocal;
-    if (activos.length > 0 && activos.length < 9 && idx >= activos.length) {
-      setShowAgregarBateador(true);
+  const promptRef = useRef<{ rol: string, index: number } | null>(null);
+
+  useEffect(() => {
+    // Si estamos en medio de un partido, y faltan bateadores por cargar
+    if (estado.partido && bateadoresActivos.length > 0 && bateadoresActivos.length < 9) {
+      const idx = equipoAlBate === 'visitante' ? estado.indiceVisitante : estado.indiceLocal;
+      if (idx >= bateadoresActivos.length && !showAgregarBateador) {
+        // Evitar múltiples aperturas del mismo modal en el mismo índice
+        if (promptRef.current?.rol !== equipoAlBate || promptRef.current?.index !== idx) {
+          promptRef.current = { rol: equipoAlBate, index: idx };
+          setShowAgregarBateador(true);
+        }
+      }
     }
-  };
+  }, [estado.partido, equipoAlBate, bateadoresActivos.length, estado.indiceVisitante, estado.indiceLocal, showAgregarBateador]);
 
   const avanzarMitad = () => {
     if (esperandoConfirmacion && !turnoEditando) {
@@ -164,7 +170,6 @@ export default function TrackingPage() {
     setEsperandoConfirmacion(false);
     setTurnoEditando(null);
     dispatch({ type: 'CAMBIAR_MITAD_INNING' });
-    checkMissingBatter(estado.mitadInning === 'alta' ? false : true); // Inning will change
   };
 
   const retrocederMitad = () => {
@@ -174,7 +179,6 @@ export default function TrackingPage() {
     setEsperandoConfirmacion(false);
     setTurnoEditando(null);
     dispatch({ type: 'RETROCEDER_MITAD_INNING' });
-    checkMissingBatter(estado.mitadInning === 'baja' ? true : false); // Inning will change
   };
 
   // Contar stats rápidas del bateador actual
