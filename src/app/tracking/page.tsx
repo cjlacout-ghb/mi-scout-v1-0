@@ -17,10 +17,11 @@ export default function TrackingPage() {
   const [esperandoConfirmacion, setEsperandoConfirmacion] = useState(false);
   const [avisoInning, setAvisoInning] = useState(false);
   const [showAgregarBateador, setShowAgregarBateador] = useState(false);
-  // Refs and effect moved before early returns
+
+
   const prevEquipoRef = useRef(equipoAlBate);
   const prevInningRef = useRef(estado.inningActual);
-  const promptRef = useRef<{ rol: string, index: number } | null>(null);
+
   useEffect(() => {
     if (prevEquipoRef.current !== equipoAlBate || prevInningRef.current !== estado.inningActual) {
       setAvisoInning(true);
@@ -28,23 +29,6 @@ export default function TrackingPage() {
     prevEquipoRef.current = equipoAlBate;
     prevInningRef.current = estado.inningActual;
   }, [equipoAlBate, estado.inningActual]);
-
-  // Open add-batter modal when needed
-  useEffect(() => {
-    // If in a game and missing batters (max 9)
-    if (estado.partido && bateadoresActivos.length > 0 && bateadoresActivos.length < 9) {
-      const idx = equipoAlBate === 'visitante' ? estado.indiceVisitante : estado.indiceLocal;
-      if (idx >= bateadoresActivos.length && !showAgregarBateador) {
-        if (promptRef.current?.rol !== equipoAlBate || promptRef.current?.index !== idx) {
-          promptRef.current = { rol: equipoAlBate, index: idx };
-          setShowAgregarBateador(true);
-        }
-      }
-    }
-  }, [estado.partido, equipoAlBate, bateadoresActivos.length, estado.indiceVisitante, estado.indiceLocal, showAgregarBateador]);
-
-
-
 
   // ─── Sin partido activo ────────────────────────────────────────────────────
   if (!estado.partido) {
@@ -164,12 +148,25 @@ export default function TrackingPage() {
     setCoordenadasSeleccionadas(null);
   };
 
-  const avanzarMitad = () => {
-    // Sólo avanzar el bateador si estamos en la mitad "baja" antes de pasar a la alta del siguiente inning
-    if (esperandoConfirmacion && !turnoEditando) {
-      if (estado.mitadInning === 'baja') {
-        dispatch({ type: 'AVANZAR_BATEADOR' });
+  const promptRef = useRef<{ rol: string, index: number } | null>(null);
+
+  useEffect(() => {
+    // Si estamos en medio de un partido, y faltan bateadores por cargar
+    if (estado.partido && bateadoresActivos.length > 0 && bateadoresActivos.length < 9) {
+      const idx = equipoAlBate === 'visitante' ? estado.indiceVisitante : estado.indiceLocal;
+      if (idx >= bateadoresActivos.length && !showAgregarBateador) {
+        // Evitar múltiples aperturas del mismo modal en el mismo índice
+        if (promptRef.current?.rol !== equipoAlBate || promptRef.current?.index !== idx) {
+          promptRef.current = { rol: equipoAlBate, index: idx };
+          setShowAgregarBateador(true);
+        }
       }
+    }
+  }, [estado.partido, equipoAlBate, bateadoresActivos.length, estado.indiceVisitante, estado.indiceLocal, showAgregarBateador]);
+
+  const avanzarMitad = () => {
+    if (esperandoConfirmacion && !turnoEditando) {
+      dispatch({ type: 'AVANZAR_BATEADOR' });
     }
     setEsperandoConfirmacion(false);
     setTurnoEditando(null);
