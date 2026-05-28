@@ -504,8 +504,20 @@ export default function LineupPage() {
 
                 {/* Nota de sustitución */}
                 {!b.activo && sustituido && (
-                  <div className="lineup-sustitucion">
-                    ↳ Reemplazado por #{sustituido.numero} {sustituido.apellido} (Inning {b.reemplazadoAInning})
+                  <div className="lineup-sustitucion" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingRight: 16 }}>
+                    <span>↳ Reemplazado por #{sustituido.numero} {sustituido.apellido} (Inning {b.reemplazadoAInning})</span>
+                    {b.esAbridor && (
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        style={{ padding: '2px 8px', fontSize: '0.7rem', color: 'var(--accent)', border: '1px solid var(--accent)' }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch({ type: 'REINGRESAR_ABRIDOR', payload: { id: b.id, rol: activeTab } });
+                        }}
+                      >
+                        Reingresar
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

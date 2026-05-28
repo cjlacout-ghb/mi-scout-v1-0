@@ -17,6 +17,7 @@ export default function TrackingPage() {
   const [esperandoConfirmacion, setEsperandoConfirmacion] = useState(false);
   const [avisoInning, setAvisoInning] = useState(false);
   const [showAgregarBateador, setShowAgregarBateador] = useState(false);
+  const [showFinPartido, setShowFinPartido] = useState(false);
 
 
   const prevEquipoRef = useRef(equipoAlBate);
@@ -29,6 +30,22 @@ export default function TrackingPage() {
     prevEquipoRef.current = equipoAlBate;
     prevInningRef.current = estado.inningActual;
   }, [equipoAlBate, estado.inningActual]);
+
+  const promptRef = useRef<{ rol: string, index: number } | null>(null);
+
+  useEffect(() => {
+    // Si estamos en medio de un partido, y faltan bateadores por cargar
+    if (estado.partido && bateadoresActivos.length > 0 && bateadoresActivos.length < 9) {
+      const idx = equipoAlBate === 'visitante' ? estado.indiceVisitante : estado.indiceLocal;
+      if (idx >= bateadoresActivos.length && !showAgregarBateador) {
+        // Evitar múltiples aperturas del mismo modal en el mismo índice
+        if (promptRef.current?.rol !== equipoAlBate || promptRef.current?.index !== idx) {
+          promptRef.current = { rol: equipoAlBate, index: idx };
+          setShowAgregarBateador(true);
+        }
+      }
+    }
+  }, [estado.partido, equipoAlBate, bateadoresActivos.length, estado.indiceVisitante, estado.indiceLocal, showAgregarBateador]);
 
   // ─── Sin partido activo ────────────────────────────────────────────────────
   if (!estado.partido) {
@@ -148,22 +165,6 @@ export default function TrackingPage() {
     setCoordenadasSeleccionadas(null);
   };
 
-  const promptRef = useRef<{ rol: string, index: number } | null>(null);
-
-  useEffect(() => {
-    // Si estamos en medio de un partido, y faltan bateadores por cargar
-    if (estado.partido && bateadoresActivos.length > 0 && bateadoresActivos.length < 9) {
-      const idx = equipoAlBate === 'visitante' ? estado.indiceVisitante : estado.indiceLocal;
-      if (idx >= bateadoresActivos.length && !showAgregarBateador) {
-        // Evitar múltiples aperturas del mismo modal en el mismo índice
-        if (promptRef.current?.rol !== equipoAlBate || promptRef.current?.index !== idx) {
-          promptRef.current = { rol: equipoAlBate, index: idx };
-          setShowAgregarBateador(true);
-        }
-      }
-    }
-  }, [estado.partido, equipoAlBate, bateadoresActivos.length, estado.indiceVisitante, estado.indiceLocal, showAgregarBateador]);
-
   const avanzarMitad = () => {
     if (esperandoConfirmacion && !turnoEditando) {
       dispatch({ type: 'AVANZAR_BATEADOR' });
@@ -187,7 +188,7 @@ export default function TrackingPage() {
   const hits = turnosBateador.filter((t) => t.resultado === 'HIT').length;
   const ks  = turnosBateador.filter((t) => t.resultado === 'KS' || t.resultado === 'KL').length;
   const bb  = turnosBateador.filter((t) => t.resultado === 'BB' || t.resultado === 'HBP').length;
-  const af  = turnosBateador.filter((t) => t.detalleOut?.tipo === 'asistencia' || t.detalleOut?.tipo === 'fly').length;
+  const outs = turnosBateador.filter((t) => t.resultado === 'OUT').length;
 
   const ultimoTurno = turnosBateador[turnosBateador.length - 1];
 
@@ -220,7 +221,7 @@ export default function TrackingPage() {
               </span>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 3, alignItems: 'center' }}>
-              <span className="badge badge-accent">{bateadorActual?.equipo}</span>
+              <span className="badge" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>{bateadorActual?.equipo}</span>
             </div>
           </div>
 
@@ -248,12 +249,12 @@ export default function TrackingPage() {
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--danger)' }}>{hits}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.62rem', color: '#FFFFFF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>A/F</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#FFFFFF' }}>{af}</div>
+              <div style={{ fontSize: '0.62rem', color: '#FFFFFF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>O</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#FFFFFF' }}>{outs}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.62rem', color: 'var(--danger)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>K</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--danger)' }}>{ks}</div>
+              <div style={{ fontSize: '0.62rem', color: 'var(--success)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>K</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--success)' }}>{ks}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '0.62rem', color: 'var(--info)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>BB/HBP</div>
@@ -311,9 +312,9 @@ export default function TrackingPage() {
         <p style={{
           textAlign: 'center',
           fontSize: '0.72rem',
-          fontWeight: 700,
+          fontWeight: 900,
           letterSpacing: '0.08em',
-          color: 'var(--text-secondary)',
+          color: 'var(--accent)',
           textTransform: 'uppercase',
           marginBottom: 4,
         }}>
@@ -450,6 +451,7 @@ export default function TrackingPage() {
               <div style={{ display: 'flex', gap: 8, opacity: 0.7 }}>
                 <button
                   onClick={() => {
+                    setEsperandoConfirmacion(false);
                     setTurnoEditando(t);
                   }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-secondary)' }}
@@ -469,6 +471,17 @@ export default function TrackingPage() {
           ))}
         </div>
       )}
+
+      {/* ── Fin Partido ── */}
+      <div style={{ padding: '16px 16px 0', display: 'flex', justifyContent: 'center' }}>
+        <button
+          className="btn btn-danger btn-sm"
+          style={{ opacity: 0.7, fontSize: '0.72rem' }}
+          onClick={() => setShowFinPartido(true)}
+        >
+          Fin Partido
+        </button>
+      </div>
 
       {/* ── Modales ── */}
       {zonaSeleccionada !== null && (
@@ -490,6 +503,16 @@ export default function TrackingPage() {
             setTurnoAEliminar(null);
           }}
           onCancelar={() => setTurnoAEliminar(null)}
+        />
+      )}
+      {showFinPartido && (
+        <ModalConfirm
+          mensaje="¿Finalizar el partido? Esta acción no se puede deshacer."
+          onConfirmar={() => {
+            setShowFinPartido(false);
+            dispatch({ type: 'NUEVO_PARTIDO' });
+          }}
+          onCancelar={() => setShowFinPartido(false)}
         />
       )}
       {showAgregarBateador && estado.partido && (

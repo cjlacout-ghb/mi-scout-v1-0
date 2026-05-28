@@ -129,18 +129,21 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
         {/* ── Cuadrado interior con los 4 cuadrantes ── */}
         <div className="zona-inner">
           {/* Orden visual: 3 (top-left), 4 (top-right), 1 (bottom-left), 2 (bottom-right) */}
-          {([3, 4, 1, 2] as const).map((z) => (
-            <div
-              key={z}
-              className="zona-cuadrante"
-              onClick={(e) => handleClick(e, z)}
-              style={hmColores[z] ? { background: hmColores[z] } : undefined}
-              role="button"
-              aria-label={`Zona ${z}`}
-            >
-              <span className="zona-cuadrante__num">{z}</span>
-            </div>
-          ))}
+          {([3, 4, 1, 2] as const).map((z) => {
+            const cornerClass = z === 3 ? 'tl' : z === 4 ? 'tr' : z === 1 ? 'bl' : 'br';
+            return (
+              <div
+                key={z}
+                className="zona-cuadrante"
+                onClick={(e) => handleClick(e, z)}
+                style={hmColores[z] ? { background: hmColores[z] } : undefined}
+                role="button"
+                aria-label={`Zona ${z}`}
+              >
+                <span className={`zona-corner-label ${cornerClass}`}>{z}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* ── Marcadores de pitch ── */}
@@ -184,11 +187,12 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: '180%',
-                    height: '180%',
+                    width: 26,
+                    height: 26,
                     borderRadius: '50%',
                     border: `2px solid ${m.resultado === 'HIT' ? 'var(--danger)' : 'var(--success)'}`,
                     pointerEvents: 'none',
+                    boxSizing: 'border-box',
                   }}
                 />
               )}

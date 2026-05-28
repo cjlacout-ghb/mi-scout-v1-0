@@ -13,6 +13,7 @@ type Accion =
   | { type: 'EDITAR_BATEADOR'; payload: { id: string; rol: 'visitante' | 'local'; datos: Partial<Omit<Bateador, 'id'>> } }
   | { type: 'REORDENAR_BATEADORES'; payload: { rol: 'visitante' | 'local'; bateadores: Bateador[] } }
   | { type: 'SUSTITUIR_BATEADOR'; payload: { salienteId: string; rol: 'visitante' | 'local'; entrante: Omit<Bateador, 'id' | 'orden'>; inning: number } }
+  | { type: 'REINGRESAR_ABRIDOR'; payload: { id: string; rol: 'visitante' | 'local' } }
   | { type: 'REGISTRAR_TURNO'; payload: Omit<TurnoAlBate, 'id' | 'timestamp'> }
   | { type: 'AVANZAR_BATEADOR' }
   | { type: 'CAMBIAR_MITAD_INNING' }
@@ -107,6 +108,30 @@ function reducer(estado: EstadoPartido, accion: Accion): EstadoPartido {
 
       const idx = newLineup.findIndex((b) => b.id === salienteId);
       newLineup.splice(idx + 1, 0, nuevoBateador);
+
+      if (isVisitante) return { ...estado, lineupVisitante: newLineup };
+      return { ...estado, lineupLocal: newLineup };
+    }
+
+    case 'REINGRESAR_ABRIDOR': {
+      const { id, rol } = accion.payload;
+      const isVisitante = rol === 'visitante';
+      const lineup = isVisitante ? estado.lineupVisitante : estado.lineupLocal;
+      
+      const abridor = lineup.find((b) => b.id === id);
+      if (!abridor || !abridor.esAbridor || abridor.activo) return estado;
+
+      const sustitutoId = abridor.reemplazadoPorId;
+
+      const newLineup = lineup.map((b) => {
+        if (b.id === id) {
+          return { ...b, activo: true, reemplazadoPorId: undefined, reemplazadoAInning: undefined };
+        }
+        if (b.id === sustitutoId) {
+          return { ...b, activo: false };
+        }
+        return b;
+      });
 
       if (isVisitante) return { ...estado, lineupVisitante: newLineup };
       return { ...estado, lineupLocal: newLineup };

@@ -56,6 +56,7 @@ const TIPOS_PITCH: { value: TipoPitch; label: string }[] = [
   { value: 'riser',  label: 'Riser' },
   { value: 'curva',  label: 'Curva' },
   { value: 'cambio', label: 'Cambio' },
+  { value: 'screw',  label: 'Screw' },
   { value: 'otro',   label: 'Otro' },
 ];
 

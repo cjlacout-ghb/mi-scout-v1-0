@@ -1,6 +1,6 @@
 // ─── TIPOS PRINCIPALES DE MI SCOUT ────────────────────────────────────────────
 
-export type TipoPitch = 'drop' | 'riser' | 'curva' | 'cambio' | 'otro';
+export type TipoPitch = 'drop' | 'riser' | 'curva' | 'cambio' | 'screw' | 'otro';
 
 export type ResultadoAtBat =
   | 'BB'     // Base por bolas
