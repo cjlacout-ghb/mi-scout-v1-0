@@ -229,9 +229,9 @@ export default function TrackingPage() {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
             <button onClick={avanzarMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1.5rem', lineHeight: 1 }}>+</button>
             <div style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              {estado.mitadInning === 'alta' ? <span style={{ color: 'var(--text-primary)', lineHeight: 1 }}>▲</span> : <span style={{ opacity: 0, lineHeight: 1 }}>▲</span>}
-              <span style={{ color: 'var(--accent)', lineHeight: 1 }}>{estado.inningActual}</span>
-              {estado.mitadInning === 'baja' ? <span style={{ color: 'var(--text-primary)', lineHeight: 1 }}>▼</span> : <span style={{ opacity: 0, lineHeight: 1 }}>▼</span>}
+              {estado.mitadInning === 'alta' ? <span style={{ color: 'var(--text-secondary)', lineHeight: 1 }}>▲</span> : <span style={{ opacity: 0, lineHeight: 1 }}>▲</span>}
+              <span style={{ color: 'var(--text-primary)', lineHeight: 1 }}>{estado.inningActual}</span>
+              {estado.mitadInning === 'baja' ? <span style={{ color: 'var(--text-secondary)', lineHeight: 1 }}>▼</span> : <span style={{ opacity: 0, lineHeight: 1 }}>▼</span>}
             </div>
             <button onClick={retrocederMitad} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: '1.5rem', lineHeight: 1 }}>−</button>
           </div>
@@ -241,16 +241,16 @@ export default function TrackingPage() {
         {ab > 0 && (
           <div style={{ display: 'flex', gap: 12, marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--border)' }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>AB</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-secondary)' }}>{ab}</div>
+              <div style={{ fontSize: '0.62rem', color: '#FFFFFF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>AB</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#FFFFFF' }}>{ab}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '0.62rem', color: 'var(--danger)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>H</div>
               <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--danger)' }}>{hits}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '0.62rem', color: '#FFFFFF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>O</div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#FFFFFF' }}>{outs}</div>
+              <div style={{ fontSize: '0.62rem', color: '#8892A4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>O</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#8892A4' }}>{outs}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '0.62rem', color: 'var(--success)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>K</div>
@@ -316,6 +316,8 @@ export default function TrackingPage() {
           letterSpacing: '0.08em',
           color: 'var(--accent)',
           textTransform: 'uppercase',
+          position: 'relative',
+          top: 10,
           marginBottom: 4,
         }}>
           {esperandoConfirmacion ? 'Confirmar resultado' : turnoEditando ? 'Reubicá el lanzamiento' : 'MARCA EL LANZAMIENTO EN LA ZONA'}
@@ -404,7 +406,7 @@ export default function TrackingPage() {
               borderRadius: 8,
               background: 'var(--bg-elevated)',
               border: '1px solid var(--border)',
-              color: 'var(--text-primary)',
+              color: '#8892A4',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -473,13 +475,12 @@ export default function TrackingPage() {
       )}
 
       {/* ── Fin Partido ── */}
-      <div style={{ padding: '16px 16px 0', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <button
-          className="btn btn-danger btn-sm"
-          style={{ opacity: 0.7, fontSize: '0.72rem' }}
+          className="btn btn-danger btn-full"
           onClick={() => setShowFinPartido(true)}
         >
-          Fin Partido
+          Finalizar partido
         </button>
       </div>
 

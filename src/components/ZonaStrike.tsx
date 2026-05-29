@@ -101,22 +101,31 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
         style={{ position: 'relative', background: 'var(--bg-elevated)' }}
       >
         {/* ── Etiquetas de esquinas (5, 6, 7, 8) ── */}
-        <span className="zona-corner-label tl">7</span>
-        <span className="zona-corner-label tr">8</span>
-        <span className="zona-corner-label bl">5</span>
-        <span className="zona-corner-label br">6</span>
+        <span className="zona-corner-label tl">{perspectiva === 'pitcher' ? '8' : '7'}</span>
+        <span className="zona-corner-label tr">{perspectiva === 'pitcher' ? '7' : '8'}</span>
+        <span className="zona-corner-label bl">{perspectiva === 'pitcher' ? '6' : '5'}</span>
+        <span className="zona-corner-label br">{perspectiva === 'pitcher' ? '5' : '6'}</span>
 
         {/* ── Zonas esquina clicables ── */}
-        {([7, 8, 5, 6] as const).map((z) => (
-          <div
-            key={z}
-            className={`zona-esquina es${z}`}
-            onClick={(e) => handleClick(e, z)}
-            style={hmColores[z] ? { background: hmColores[z] } : undefined}
-            role="button"
-            aria-label={`Zona ${z}`}
-          />
-        ))}
+        {([7, 8, 5, 6] as const).map((cssId) => {
+          let logicalZone = cssId;
+          if (perspectiva === 'pitcher') {
+            if (cssId === 7) logicalZone = 8;
+            if (cssId === 8) logicalZone = 7;
+            if (cssId === 5) logicalZone = 6;
+            if (cssId === 6) logicalZone = 5;
+          }
+          return (
+            <div
+              key={cssId}
+              className={`zona-esquina es${cssId}`}
+              onClick={(e) => handleClick(e, logicalZone as ZonaStrike)}
+              style={hmColores[logicalZone] ? { background: hmColores[logicalZone] } : undefined}
+              role="button"
+              aria-label={`Zona ${logicalZone}`}
+            />
+          );
+        })}
 
         {/* ── Líneas divisorias extendidas al borde exterior ── */}
         <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2 }}>
@@ -129,18 +138,25 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
         {/* ── Cuadrado interior con los 4 cuadrantes ── */}
         <div className="zona-inner">
           {/* Orden visual: 3 (top-left), 4 (top-right), 1 (bottom-left), 2 (bottom-right) */}
-          {([3, 4, 1, 2] as const).map((z) => {
-            const cornerClass = z === 3 ? 'tl' : z === 4 ? 'tr' : z === 1 ? 'bl' : 'br';
+          {([3, 4, 1, 2] as const).map((cssId) => {
+            let logicalZone = cssId;
+            if (perspectiva === 'pitcher') {
+              if (cssId === 3) logicalZone = 4;
+              if (cssId === 4) logicalZone = 3;
+              if (cssId === 1) logicalZone = 2;
+              if (cssId === 2) logicalZone = 1;
+            }
+            const cornerClass = cssId === 3 ? 'tl' : cssId === 4 ? 'tr' : cssId === 1 ? 'bl' : 'br';
             return (
               <div
-                key={z}
+                key={cssId}
                 className="zona-cuadrante"
-                onClick={(e) => handleClick(e, z)}
-                style={hmColores[z] ? { background: hmColores[z] } : undefined}
+                onClick={(e) => handleClick(e, logicalZone as ZonaStrike)}
+                style={hmColores[logicalZone] ? { background: hmColores[logicalZone] } : undefined}
                 role="button"
-                aria-label={`Zona ${z}`}
+                aria-label={`Zona ${logicalZone}`}
               >
-                <span className={`zona-corner-label ${cornerClass}`}>{z}</span>
+                <span className={`zona-corner-label ${cornerClass}`}>{logicalZone}</span>
               </div>
             );
           })}
@@ -152,14 +168,23 @@ export default function ZonaStrikeComponent({ onZonaClick, marcadores = [], heat
           
           if (m.coordenadas) {
             // Coordenadas exactas proporcionadas
+            let xVisual = m.coordenadas.x;
+            if (perspectiva === 'pitcher') {
+              xVisual = 1 - m.coordenadas.x;
+            }
             topStr = `${(m.coordenadas.y * 100).toFixed(2)}%`;
-            leftStr = `${(m.coordenadas.x * 100).toFixed(2)}%`;
+            leftStr = `${(xVisual * 100).toFixed(2)}%`;
           } else {
             // Fallback para turnos viejos sin coordenadas (usa offset estático)
             const pos = ZONA_OFFSET[m.zona] || { top: '50%', left: '50%' };
+            let leftVal = parseInt(pos.left);
+            if (perspectiva === 'pitcher' && !isNaN(leftVal)) {
+              leftVal = 100 - leftVal;
+            }
+            const leftCalc = isNaN(leftVal) ? pos.left : `${leftVal}%`;
             const jitter = i * 4; // Solo aplicamos jitter a los viejos
             topStr = `calc(${pos.top} + ${jitter % 8}px)`;
-            leftStr = `calc(${pos.left} + ${(jitter * 1.5) % 10}px)`;
+            leftStr = `calc(${leftCalc} + ${(jitter * 1.5) % 10}px)`;
           }
 
           let colorResultado = 'var(--text-primary)';
